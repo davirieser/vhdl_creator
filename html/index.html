@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+
+<html>
+
+    <head>
+
+        <meta charset="UTF-8">
+        <title>Vhdl-Creator</title>
+        <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline';" />
+        <script type="text/javascript" src="index.js"></script>
+
+    </head>
+
+    <body>
+
+        <font face="Arial" size="5">
+
+            <center>
+                <h1>
+                    Create VHDL-Scripts
+                </h1>
+
+                <div class="input_fields">
+
+                    <label for="input_vars">Number of Input-Variables</label>
+                    <input type="number" name="input_vars" id="input_vars" onchange="variable_change()">
+
+                    <br>
+
+                    <label for="output_vars">Number of Output-Variables</label>
+                    <input type="number" name="output_vars" id="output_vars" onchange="variable_change()">
+
+                    <br>
+
+                    <label for="KDNF">Konjunktive Normalform</label>
+                    <input type="radio" id="KDNF" name="boolean_logic_form" value="KDNF" onchange="variable_change()" selected>
+                    <label for="DDNF">Disjunktive Normalform</label>
+                    <input type="radio" id="DDNF" name="boolean_logic_form" value="DDNF" onchange="variable_change()">
+
+                </div>
+
+            </center>
+
+            <div class="truth_table" id="truth_table">
+
+                <h1>Wahrheitstabelle</h1>
+
+            </div>
+
+            <div class="karnaugh_map" id="karnaugh_map_container">
+
+                <h1>KV-Diagramme</h1>
+
+            </div>
+
+            <div class="vhdl_script_div" id="vhdl_script_whole">
+
+                <h1>VHDL-Skript</h1>
+
+                <div class="vhdl_script_div" id="vhdl_script_entity">
+
+                    <h3>Entity</h3>
+
+                </div>
+
+                <div class="vhdl_script_div" id="vhdl_script_architecture">
+
+                    <h3>Architecture</h3>
+
+                </div>
+
+                <div class="vhdl_script_div" id="vhdl_script_testbench">
+
+                    <h3>Testbench</h3>
+
+                </div>
+
+            </div>
+
+        </font>
+
+    </body>
+
+</html>

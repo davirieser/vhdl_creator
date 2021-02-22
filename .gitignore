@@ -1,0 +1,14 @@
+# Blacklist everything
+*
+
+# Whitelist Top-Level Files and Folders
+!Makefile
+!.gitignore
+!html
+
+# Whitelist all Project-Files
+!**/**.html
+!**.css
+!**/**.js
+!**.ps1
+!**.json
