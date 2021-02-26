@@ -62,7 +62,7 @@ function redraw_table() {
 }
 
 function create_truth_table(){
-    
+
     // Get Div in which the Table should be inserted
     var truth_table_div = document.getElementById("truth_table");
 
@@ -92,15 +92,6 @@ function create_truth_table(){
             // Create Cell that contains an Input for the Logic-Value
             var td = tr.insertCell();
             td.class = "truth_table_td";
-            // TODO Put into Input
-            td.onclick = function () {
-                // Invert Logic-Value
-                if(this.childNodes[0].value = "0") {
-                    this.childNodes[0].value = "1";
-                }else{
-                    this.childNodes[0].value = "0";
-                }
-            };
             // Append Logic-Input to Cell
             td.appendChild(create_logic_input());
         }
@@ -148,10 +139,16 @@ function create_logic_input(cell_num) {
     newInput.value = "0";
     newInput.class = "logic_input";
     // Disable Input so only Code can modify the Value
-    newInput.disabled = true;
+    newInput.readOnly = true;
     // Create Callback-Function for OnClick
-    // TODO Get from create_truth_table
-    // FIXME: Input disabled ignores Onclick
+    newInput.onclick = function () {
+        // Invert Logic-Value
+        if(this.value = "0") {
+            this.value = "1";
+        }else{
+            this.value = "0";
+        }
+    };
 
     // Return Input-Element
     return newInput;
