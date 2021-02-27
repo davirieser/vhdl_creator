@@ -104,6 +104,11 @@ function create_truth_table(){
 function update_equation(cell_num, new_val) {
 
     // TODO
+    // https://github.com/mnahm5/Karnaugh-Map-Solver/blob/master/scripts/Calculator.js
+    // https://www.rosettacode.org/wiki/Truth_table#JavaScript
+    // https://en.wikipedia.org/wiki/Karnaugh_map
+    // https://github.com/obsfx/kmap-solver-lib/blob/main/src/index.ts
+    // https://web.stanford.edu/class/cs103/tools/truth-table-tool/
 
 }
 
