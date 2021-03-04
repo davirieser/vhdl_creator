@@ -24,7 +24,7 @@ app.on('ready', () => {
         }
     );
 
-    win.loadFile('html/index.html');
+    win.loadFile('src/index.html');
 
 })
 

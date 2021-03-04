@@ -1,0 +1,51 @@
+body{
+    font-family: monospace;
+    font-size: 5;
+}
+
+.no_padding{
+    padding: 0;
+    margin: 0;
+}
+
+.truth_table{
+    border: 0.3ex solid black;
+    border-collapse: collapse;
+}
+
+.truth_table_td{
+    border-right: 0.3ex solid black;
+}
+
+.border_bottom{
+    border-bottom: 0.3ex solid black;
+}
+
+.double_border{
+    border-left: 0.5ex solid black;
+}
+
+.kv_diagram{
+    border-collapse: collapse;
+}
+
+.kv_diagram_logic_td{
+    align-content: center;
+    border: 1px solid black;
+}
+
+.kv_diagram_name_td{
+    padding: 0.5ex
+}
+
+.logic_input{
+    width: 1em;
+    border: none
+}
+.name_input{
+    width: auto;
+    border: none
+}
+.negated_logic{
+    text-decoration: overline black;
+}

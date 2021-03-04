@@ -1,5 +1,4 @@
-<!DOCTYPE html>
-
+<!DOCType html>
 <html>
 
     <head>
@@ -8,76 +7,75 @@
         <title>Vhdl-Creator</title>
         <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline';" />
         <script type="text/javascript" src="index.js"></script>
+        <link rel="stylesheet" type="text/css" href="index.css" />
 
     </head>
 
     <body>
 
-        <font face="Arial" size="5">
+        <center>
+            <h1>
+                Create VHDL-Scripts
+            </h1>
 
-            <center>
-                <h1>
-                    Create VHDL-Scripts
-                </h1>
+            <div class="input_fields">
 
-                <div class="input_fields">
+                <label for="input_vars">Number of Input-Variables</label>
+                <input type="number" name="input_vars" id="input_vars" onchange="variable_change()">
 
-                    <label for="input_vars">Number of Input-Variables</label>
-                    <input type="number" name="input_vars" id="input_vars" onchange="variable_change()">
+                <br>
 
-                    <br>
+                <label for="output_vars">Number of Output-Variables</label>
+                <input type="number" name="output_vars" id="output_vars" onchange="variable_change()">
 
-                    <label for="output_vars">Number of Output-Variables</label>
-                    <input type="number" name="output_vars" id="output_vars" onchange="variable_change()">
-
+                <!--
                     <br>
 
                     <label for="KDNF">Konjunktive Normalform</label>
                     <input type="radio" id="KDNF" name="boolean_logic_form" value="KDNF" onchange="variable_change()" selected>
                     <label for="DDNF">Disjunktive Normalform</label>
                     <input type="radio" id="DDNF" name="boolean_logic_form" value="DDNF" onchange="variable_change()">
-
-                </div>
-
-            </center>
-
-            <div class="truth_table" id="truth_table">
-
-                <h1>Wahrheitstabelle</h1>
+                -->
 
             </div>
 
-            <div class="karnaugh_map" id="karnaugh_map_container">
+        </center>
 
-                <h1>KV-Diagramme</h1>
+        <h1>Wahrheitstabelle</h1>
 
-            </div>
+        <div class="truth_table_div" id="truth_table_div">
 
-            <div class="vhdl_script_div" id="vhdl_script_whole">
+        </div>
 
-                <h1>VHDL-Skript</h1>
+        <h1>KV-Diagramme</h1>
 
-                <div class="vhdl_script_div" id="vhdl_script_entity">
+        <div class="karnaugh_map_div" id="karnaugh_map_container">
 
-                    <h3>Entity</h3>
+        </div>
 
-                </div>
+        <div class="vhdl_script_div" id="vhdl_script_whole">
 
-                <div class="vhdl_script_div" id="vhdl_script_architecture">
+            <h1>VHDL-Skript</h1>
 
-                    <h3>Architecture</h3>
+            <div class="vhdl_script_div" id="vhdl_script_entity">
 
-                </div>
-
-                <div class="vhdl_script_div" id="vhdl_script_testbench">
-
-                    <h3>Testbench</h3>
-
-                </div>
+                <h3>Entity</h3>
 
             </div>
 
-        </font>
+            <div class="vhdl_script_div" id="vhdl_script_architecture">
+
+                <h3>Architecture</h3>
+
+            </div>
+
+            <div class="vhdl_script_div" id="vhdl_script_testbench">
+
+                <h3>Testbench</h3>
+
+            </div>
+
+        </div>
 
     </body>
 
