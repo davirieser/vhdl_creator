@@ -6,11 +6,16 @@ var output_signal_names = [];
 var signal_names = [];
 var input_logic_vals = [];
 
+var kv_diagram_size = {height:0,width:0,depth:0};
+
 function init() {
 
     // Initialize Input-Fields
     document.getElementById("input_vars").value = 4;
     document.getElementById("output_vars").value = 4;
+
+    //
+    kv_diagram_size = {height:4,width:4,depth:1};
 
     // Initialize Signal-Names
     variable_change();
@@ -78,7 +83,7 @@ function create_truth_table(){
         // Create Cell that contains an Input for the Signal-Name
         var td = tr.insertCell();
         td.classList.add("truth_table_td");
-        td.classList.add("border_bottom");
+        td.classList.add("truth_table_header");
         // Seperate Inputs and Outputs in Table using Double Border
         if(j == num_inputs){td.classList.add("double_border")}
         td.appendChild(create_signal_input(j));
@@ -105,12 +110,72 @@ function create_truth_table(){
             // Seperate Inputs and Outputs in Table using Double Border
             if(j == 0){td.classList.add("double_border")}
             // Append Logic-Input to Cell
-            td.appendChild(create_logic_input("0",true,output_signal_names[j]+"_cell"+i));
+            td.appendChild(create_logic_input("0",true,("Ouput_"+j+"_logic_cell"+i)));
         }
     }
 
     // Insert new Table
     truth_table_div.appendChild(table);
+}
+
+function create_signal_input(signal_num) {
+
+    // Create New Input-Element
+    var newInput = document.createElement("input");
+
+    // Configure Input-Element
+    newInput.type = "text";
+    newInput.name = "Signal_Name";
+    newInput.value = signal_names[signal_num];
+    newInput.classList.add("name_input");
+    // Create Callback-Function for OnChange
+    newInput.onchange = (function (j_i) {
+        return function () {
+            change_signal_name(j_i,this.value);
+        };
+    }(signal_num));
+
+    // Return Input-Element
+    return newInput;
+
+}
+
+function create_logic_input(val,changable,cell_id) {
+
+    // Create New Input-Element
+    var newInput = document.createElement("input");
+
+    // Configure Input-Element
+    newInput.type = "text";
+    newInput.value = val;
+    newInput.classList.add("logic_input");
+    if (changable) {
+        // Make Input readonly so only Code can modify the Value
+        // OnChange still works with "readonly" contrary to "diasabled"
+        newInput.readOnly = true;
+        // Create Callback-Function for OnClick
+        newInput.onclick = function () {
+            // Invert Logic-Value
+            if(this.value == "0") {
+                this.value = "1";
+            }else{
+                this.value = "0";
+            }
+            // Generate new Equations
+            update_equation();
+        };
+    }else{
+        // Disable Input so only Code can modify the Value
+        newInput.disabled = true;
+    }
+    if(cell_id) {
+        // Give Input a ID so it can be easily accessed later
+        newInput.id = cell_id;
+    }
+
+    // Return Input-Element
+    return newInput;
+
 }
 
 function update_equation() {
@@ -148,7 +213,7 @@ function update_equation() {
         // Loop over Truth Table
         for (j = 0; j < (2 ** num_inputs); j++) {
 
-            input = document.getElementById(output_signal_names[i]+"_cell"+j);
+            input = document.getElementById("Ouput_"+i+"_logic_cell"+j);
 
             // Check that DOM-Element is valid
             if(input) {
@@ -162,7 +227,8 @@ function update_equation() {
         string = output_signal_names[i] + " = " + values;
 
         heading = document.createElement("h2");
-        text_node = document.createTextNode(output_signal_names[i]);
+        text_node = document.createTextNode("Signal : \"" + output_signal_names[i] + "\"");
+        heading.classList.add("kv_heading");
         heading.appendChild(text_node);
         kv_dia_div.appendChild(heading);
 
@@ -171,7 +237,12 @@ function update_equation() {
         paragraph.appendChild(text_node);
         kv_dia_div.appendChild(paragraph);
 
-        kv_dia_div.appendChild(create_kv_diagram(values,i));
+        var kv_dia = create_kv_diagram(values,i);
+        if (kv_dia){
+            kv_dia_div.appendChild(kv_dia);
+        }
+
+        create_kv_packets(values,true);
 
     }
 
@@ -185,10 +256,10 @@ function create_kv_diagram(values,output_num) {
         var right_negated = [true,false,false,true];
 
         var table = document.createElement("table");
-        table.cellspacing = 0;
-        table.cellpadding = 0;
         table.classList.add("kv_diagram");
         table.id = output_signal_names[output_num] + "_kv_diagram";
+
+        // FIXME: Breaks if num_inputs < 4
 
         // Create Top-Input-Row
         var tr = table.insertRow();
@@ -200,41 +271,17 @@ function create_kv_diagram(values,output_num) {
             var tr = table.insertRow();
             tr.classList.add("kv_diagram_tr");
 
-            // TODO: Des andersch machen
             // Create Input-Name plus optional Negation
-            var td = tr.insertCell();
-            td.classList.add("kv_diagram_name_td");
-            var span = document.createElement("span");
-            var text_node = document.createTextNode(input_signal_names[1]);
-            if (!right_negated[i]) {
-                span.classList.add("negated_logic");
-            }
-            span.appendChild(text_node);
-            td.appendChild(span);
+            create_kv_inputs_td(tr,input_signal_names[1],right_negated[i],"kv_diagram_td kv_diagram_name_td");
 
             for (j = 0; j < num_inputs; j ++) {
 
-                var td = tr.insertCell();
-                td.classList.add("kv_diagram_logic_td");
-                var span = document.createElement("span");
-                var text_node = document.createTextNode(values[(i*4)+j]);
-                span.appendChild(text_node);
-
-                td.appendChild(span);
+                create_kv_inputs_td(tr,values[(i*4)+j],true,"kv_diagram_td kv_diagram_logic_td");
 
             }
 
-            // TODO: Des andersch machen
             // Create Input-Name plus optional Negation
-            var td = tr.insertCell();
-            var span = document.createElement("span");
-            td.classList.add("kv_diagram_name_td");
-            var text_node = document.createTextNode(input_signal_names[3]);
-            if (!middle_negated[i]) {
-                span.classList.add("negated_logic");
-            }
-            span.appendChild(text_node);
-            td.appendChild(span);
+            create_kv_inputs_td(tr,input_signal_names[3],middle_negated[i],"kv_diagram_td kv_diagram_name_td");
 
         }
 
@@ -250,92 +297,145 @@ function create_kv_diagram(values,output_num) {
 
 }
 
+function create_kv_packets(values, compare_val) {
+
+    var i, j, k;
+    var cells = [];
+    var packets = [];
+
+    for (i = 0; i < values.length; i++) {
+        // TODO Replace Object Array for normal boolean Array
+        // Create Array with Objects for easier Use
+        cells.push({value:values[i],in_packet:false});
+    }
+
+    // Cycle through all Values
+    // First get all Packets with two Cells
+    for (i = 0; i < cells.length; i++) {
+        // Check if Cell is to be put in a Packet
+        if (cells[i].value == compare_val) {
+            for (j = 0; j < num_inputs; j++){
+                // Check if Packet could've already been checked to
+                // avoid creating Packets multiple times
+                if(i < (i^(2**j))){
+                    // Check if adjacent Cell should also be put in a Packet
+                    // Get adjacent Cells by flipping each Bit after another (XOR)
+                    // TODO Implement Don't Care
+                    if(cells[(i^(2**j))].value == compare_val){
+                        // Mark a Packet
+                        packets.push([i,i^(2**j)]);
+                        // Indicate that both Cells already are in a Packet
+                        cells[i].in_packet = true;
+                        cells[i^(2**j)].in_packet = true;
+                        break;
+                    }
+                }
+            }
+            if(!cells[i].in_packet){
+                // If Cell was not put in Packet, create single Packet
+                packets.push([i]);
+                cells[i].in_packet = true;
+            }
+        }
+    }
+
+    // console.log("Cells : " + JSON.stringify(cells) + " \\and Packets : " + JSON.stringify(packets));
+
+    equation_from_packets(packets);
+
+    // Create Packets of four from Packets of two
+
+}
+
 function create_kv_inputs(tr,input_num,negated) {
 
-    var td = tr.insertCell();
-    var span = document.createElement("span");
-    var text_node = document.createTextNode("");
-    span.appendChild(text_node);
-    td.appendChild(span);
+    create_kv_inputs_td(tr,"",true,"kv_diagram_td");
 
     for(j = 0; j < 4; j++){
-        var td = tr.insertCell();
-        td.classList.add("kv_diagram_name_td");
-        var span = document.createElement("span");
-        if (!negated[j]) {
-            span.classList.add("negated_logic");
-        }
-        var text_node = document.createTextNode(input_signal_names[input_num]);
-        span.appendChild(text_node);
-        td.appendChild(span);
+
+        create_kv_inputs_td(tr,input_signal_names[input_num],negated[j],"kv_diagram_td kv_diagram_name_td");
+
     }
 
+    create_kv_inputs_td(tr,"",true,"kv_diagram_td");
+
+}
+
+function create_kv_inputs_td(tr,text,negated,classes) {
+
     var td = tr.insertCell();
+    if(classes){
+        classes.split(" ").forEach(class_string => {
+            td.classList.add(class_string);
+        });
+    }
+
     var span = document.createElement("span");
-    var text_node = document.createTextNode("");
+    if (!negated) {
+        span.classList.add("negated_logic");
+    }
+    var text_node = document.createTextNode(text);
     span.appendChild(text_node);
     td.appendChild(span);
 
 }
 
-function create_signal_input(signal_num) {
+function equation_from_packets(packets) {
 
-    // Create New Input-Element
-    var newInput = document.createElement("input");
+    var i;
+    var output_string = "";
 
-    // Configure Input-Element
-    newInput.type = "text";
-    newInput.name = "Signal_Name";
-    newInput.value = signal_names[signal_num];
-    newInput.classList.add("name_input");
-    // Create Callback-Function for OnChange
-    newInput.onchange = (function (j_i) {
-        return function () {
-            change_signal_name(j_i,this.value);
-        };
-    }(signal_num));
+    for (i = 0; i < packets.length; i++) {
+        output_string += equation_from_packet(packets[i]) + "&";
+    }
 
-    // Return Input-Element
-    return newInput;
+    output_string = output_string.slice(0,-1);
+
+    console.log(output_string);
+
+    return output_string;
 
 }
 
-function create_logic_input(val,changable,cell_id) {
+function equation_from_packet(packet) {
 
-    // Create New Input-Element
-    var newInput = document.createElement("input");
+    if(!(packet.length == 0)) {
 
-    // Configure Input-Element
-    newInput.type = "text";
-    newInput.value = val;
-    newInput.classList.add("logic_input");
-    //
-    if (changable) {
-        // Make Input readonly so only Code can modify the Value
-        // OnChange still works with "readonly" contrary to "diasabled"
-        newInput.readOnly = true;
-        // Create Callback-Function for OnClick
-        newInput.onclick = function () {
-            // Invert Logic-Value
-            if(this.value = "0") {
-                this.value = "1";
-            }else{
-                this.value = "0";
+        var i, j;
+        var negated_inputs = [];
+
+        var string_output = "";
+
+        console.log("Packaging : " + packet[0])
+
+        for(i = 0; i < num_inputs; i++) {
+            negated_inputs.push({
+                input_name: input_signal_names[i],
+                negated: !(((packet[0] >> (num_inputs - i - 1)) & 1) == 1)
+            });
+        }
+
+        for(i = 0; i < (packet.length-1); i++) {
+            for (j = 0; j < num_inputs; j++) {
+                if ((packet[i] & (2 ** j)) != (packet[i+1] & (2 ** j))) {
+                    // Remove Input
+                    negated_inputs.splice((num_inputs - j - 1),1);
+                }
             }
-            // Generate new Equations
-            update_equation();
-        };
-    }else{
-        // Disable Input so only Code can modify the Value
-        newInput.disabled = true;
-    }
-    if(cell_id) {
-        // Give Input a ID so it can be easily accessed later
-        newInput.id = cell_id;
-    }
+        }
 
-    // Return Input-Element
-    return newInput;
+        for(i = 0; i < negated_inputs.length; i++) {
+            string_output += (negated_inputs[i].negated ? "not " : "") + negated_inputs[i].input_name + "|";
+        }
+
+        // Remove "|"-Operator from the End of the String
+        string_output = string_output.slice(0, -1);
+
+        console.log(packet + " => " + string_output);
+
+        return string_output;
+
+    }
 
 }
 

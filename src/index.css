@@ -1,5 +1,5 @@
 body{
-    font-family: monospace;
+    font-family: Arial;
     font-size: 5;
 }
 
@@ -9,16 +9,20 @@ body{
 }
 
 .truth_table{
-    border: 0.3ex solid black;
+    border: 0.25ex solid black;
     border-collapse: collapse;
 }
 
-.truth_table_td{
-    border-right: 0.3ex solid black;
+.truth_table_header{
+    border-bottom: 0.25ex solid black;
 }
 
-.border_bottom{
-    border-bottom: 0.3ex solid black;
+.truth_table_header input{
+    border: none;
+}
+
+.truth_table_td{
+    border-right: 0.25ex solid black;
 }
 
 .double_border{
@@ -31,21 +35,30 @@ body{
 
 .kv_diagram_logic_td{
     align-content: center;
-    border: 1px solid black;
+    border: 0.25ex solid black;
 }
 
 .kv_diagram_name_td{
     padding: 0.5ex
 }
 
-.logic_input{
-    width: 1em;
-    border: none
-}
 .name_input{
-    width: auto;
-    border: none
+    background-color: white;
 }
+
+.name_input:focus{
+    outline: none;
+}
+
+.logic_input{
+    width: inherit;
+    border: none;
+    background-color: white;
+}
+.logic_input:focus{
+    outline: none;
+}
+
 .negated_logic{
     text-decoration: overline black;
 }
