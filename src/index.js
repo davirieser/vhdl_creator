@@ -314,46 +314,51 @@ function create_kv_packets(values, compare_val) {
         // Create Packet Array with single Packets
         // TODO Implement Don't Care
         if(values[i] == compare_val) {
-            // TODO Des zum Array machen
-            packets.push(i);
-            total_packets.push([i]);
+            packets.push([i]);
         }
     }
+    // if(packets.length == (2**num_inputs)){
+    //     var temp = [];
+    //     for (i = 0; i < values.length; i++) {
+    //         if(values[i] == compare_val) {
+    //             temp.push(i);
+    //         }
+    //         packets.push(temp);
+    //     }
+    //     return packets;
+    // }
 
-    console.log("Single Packets : " + packets);
+    // console.log("Single Packets : " + packets);
 
     var packets_found = packets.length;
 
     while (packets_found > 1) {
         packets_found = 0;
-        total_packets = total_packets.concat(packets_old);
+        total_packets = total_packets.concat(packets);
         packets_old = packets;
         packets = [];
         // Cycle through all Values
         for (i = 0; i < packets_old.length; i++) {
-            for (j = 0; j < num_inputs; j++){
-                var test_cell = (packets_old[i]^(2**j));
-                // Check if Packet could've already been checked to
-                // avoid creating Packets multiple times
-                if(packets_old[i] < test_cell){
-                    // TODO Da muss a For-Schleife eini
-                    // Check if adjacent Cell should also be put in a Packet
-                    // Get adjacent Cells by flipping each Bit after another (XOR)
-                    if(packets_old.includes(test_cell)) {
-                        console.log("Packet [" + packets_old[i] + "," + test_cell + "] found");
-                        // Mark a Packet
-                        packets.push([packets_old[i],test_cell]);
-                        total_packets.push([packets_old[i],test_cell]);
-                        // packets_found++;
+            packet_loop: for (j = i+1; j < packets_old.length; j++){
+                var difference = packets_old[j][0] - packets_old[i][0];
+                // Check if only one Bit is flipped
+                if (check_if_bit_flipped(packets_old[j][0],packets_old[i][0])) {
+                    if(!check_for_duplicate(packets_old[j],packets_old[i])){
+                        for (l = 0; l < packets_old[i].length; l++){
+                            if((packets_old[j][l] - packets_old[i][l]) != difference) {
+                                continue packet_loop;
+                            }
+                        }
+                        console.log("Created New Packet : [" + packets_old[i].concat(packets_old[j]) + "]");
+                        packets.push(packets_old[i].concat(packets_old[j]));
+                        packets_found ++;
                     }
                 }
             }
         }
     }
 
-    // console.log("Cells : " + JSON.stringify(cells) + " \\and Packets : " + JSON.stringify(packets));
-
-    // Create Packets of four from Packets of two
+    total_packets = total_packets.concat(packets);
 
     // Remove unneccessary Packets
 
@@ -386,7 +391,7 @@ function create_kv_packets(values, compare_val) {
         if(check_for_missing(temp, packets_old)) {
 
             // Remove unneccessary Packet
-            console.log("Package : " + total_packets.splice(i,1) + " is unneccesary");
+            console.log("Packet : " + total_packets.splice(i,1) + " is unneccesary");
             i --;
 
             // Create new Reference Array
@@ -410,6 +415,25 @@ function create_kv_packets(values, compare_val) {
 
 }
 
+function check_if_bit_flipped(number_one,number_two) {
+
+    var i;
+    var flipped = 0;
+
+    for (i = 0; i < num_inputs; i++) {
+        if ((number_one ^ (2**i)) == number_two) {
+            flipped++;
+        }
+    }
+
+    if(flipped == 1) {
+        return true;
+    }
+
+    return false;
+
+}
+
 // Check if array2 is contained in array1
 function check_for_missing(array1,array2) {
 
@@ -420,12 +444,30 @@ function check_for_missing(array1,array2) {
         for(i = 0; i < array1.length; i++) {
             if(array1[i] == array2[j]) {
                 found ++;
+                // Break on the first Match
                 break;
             }
         }
     }
 
     return (found == array2.length);
+}
+
+// Check if array1 and array2 have a duplicate Value
+function check_for_duplicate(array1,array2) {
+
+    var i, j;
+    var found = 0;
+
+    for(j = 0; j < array2.length; j ++){
+        for(i = 0; i < array1.length; i++) {
+            if(array1[i] == array2[j]) {
+                return true;
+            }
+        }
+    }
+
+    return false;
 }
 
 function create_kv_inputs(tr,input_num,negated) {
@@ -467,15 +509,21 @@ function equation_from_packets(packets) {
     var i;
     var output_string = "";
 
-    for (i = 0; i < packets.length; i++) {
-        output_string += equation_from_packet(packets[i]) + " | ";
+    if(packets.length != 0) {
+
+        for (i = 0; i < packets.length; i++) {
+            output_string += equation_from_packet(packets[i]) + " or ";
+        }
+
+        output_string = output_string.slice(0,-4);
+
+        console.log(output_string);
+
+        return output_string;
+
     }
 
-    output_string = output_string.slice(0,-3);
-
-    console.log(output_string);
-
-    return output_string;
+    return "0";
 
 }
 
@@ -483,10 +531,8 @@ function equation_from_packet(packet) {
 
     if(!(packet.length == 0)) {
 
-        var i, j;
+        var i, j, len;
         var negated_inputs = [];
-
-        console.log("Packaging : " + packet[0]);
 
         // Create Array with Input-Names
         for(i = 0; i < num_inputs; i++) {
@@ -496,31 +542,42 @@ function equation_from_packet(packet) {
             });
         }
 
+        len = negated_inputs.length;
+
         // Cycle through all Packets
-        for(i = 0; i < (packet.length-1); i++) {
+        for(i = 1; i < packet.length; i *= 2) {
             // Cycle through all Bits
             for (j = 0; j < num_inputs; j++) {
                 // Check which Bit is different
-                if ((packet[i] & (2 ** j)) != (packet[i+1] & (2 ** j))) {
+                if ((packet[0] & (2 ** j)) != (packet[i] & (2 ** j))) {
                     // Remove Input if Bits differ
-                    negated_inputs.splice((num_inputs - j - 1),1);
+                    negated_inputs.splice(((len--) - j - 1),1);
                 }
             }
         }
 
-        // Create String Output
-        var string_output = "(";
-        for(i = 0; i < negated_inputs.length; i++) {
-            string_output += (negated_inputs[i].negated ? "not " : "") + negated_inputs[i].input_name + " & ";
+        if(negated_inputs.length != 0) {
+
+            // Create String Output
+            var string_output = "(";
+            for(i = 0; i < negated_inputs.length; i++) {
+                string_output +=    (negated_inputs[i].negated ? "(not " : "") +
+                                    negated_inputs[i].input_name +
+                                    (negated_inputs[i].negated ? ")" : "") +
+                                    " and ";
+            }
+
+            // Remove "|"-Operator from the End of the String
+            string_output = string_output.slice(0, -5);
+            string_output += ')';
+
+            console.log(packet + " => " + string_output);
+
+            return string_output;
+
         }
 
-        // Remove "|"-Operator from the End of the String
-        string_output = string_output.slice(0, -3);
-        string_output += ')';
-
-        console.log(packet + " => " + string_output);
-
-        return string_output;
+        return "1";
 
     }
 

@@ -6,7 +6,7 @@ let win = null;
 app.on('ready', () => {
 
     win = new BrowserWindow({
-        darkTheme: true,
+        // darkTheme: true,
         // useContentSize: false,
         // fullscreen: true,
         // frame: false,
