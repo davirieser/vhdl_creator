@@ -224,7 +224,7 @@ function update_equation() {
 
         }
 
-        string = output_signal_names[i] + " = " + values;
+        // string = output_signal_names[i] + " = " + values;
 
         heading = document.createElement("h2");
         text_node = document.createTextNode("Signal : \"" + output_signal_names[i] + "\"");
@@ -232,10 +232,10 @@ function update_equation() {
         heading.appendChild(text_node);
         kv_dia_div.appendChild(heading);
 
-        paragraph = document.createElement("p");
-        text_node = document.createTextNode(string);
-        paragraph.appendChild(text_node);
-        kv_dia_div.appendChild(paragraph);
+        // paragraph = document.createElement("p");
+        // text_node = document.createTextNode(string);
+        // paragraph.appendChild(text_node);
+        // kv_dia_div.appendChild(paragraph);
 
         var kv_dia = create_kv_diagram(values,i);
         if (kv_dia){
@@ -244,12 +244,12 @@ function update_equation() {
 
         create_kv_packets(values,true);
 
-        // var equation = equation_from_packets(create_kv_packets(values,true));
-        //
-        // paragraph = document.createElement("p");
-        // text_node = document.createTextNode(output_signal_names[i] + " = " + equation);
-        // paragraph.appendChild(text_node);
-        // kv_dia_div.appendChild(paragraph);
+        var equation = equation_from_packets(create_kv_packets(values,true));
+
+        paragraph = document.createElement("p");
+        text_node = document.createTextNode(output_signal_names[i] + " = " + equation);
+        paragraph.appendChild(text_node);
+        kv_dia_div.appendChild(paragraph);
 
     }
 
@@ -282,10 +282,8 @@ function create_kv_diagram(values,output_num) {
             create_kv_inputs_td(tr,input_signal_names[1],right_negated[i],"kv_diagram_td kv_diagram_name_td");
 
             for (j = 0; j < num_inputs; j ++) {
-
-                // FIXME : Fills in Values in the wrong Places
-                create_kv_inputs_td(tr,values[(i*4)+j],true,"kv_diagram_td kv_diagram_logic_td");
-
+                var place = ((2**3) * right_negated[j]) + ((2**2) * right_negated[i]) + ((2**1) * middle_negated[j]) + ((2 **0) * middle_negated[i]);
+                create_kv_inputs_td(tr,values[place],true,"kv_diagram_td kv_diagram_logic_td");
             }
 
             // Create Input-Name plus optional Negation
@@ -379,7 +377,8 @@ function create_kv_packets(values, compare_val) {
     var temp;
     for(i = 0; i < total_packets.length; i++) {
 
-        // TODO: Andersch kopieren? Mit Packets-Array machen
+        // TODO: Andersch kopieren?
+        //       Mit Packets-Array Splicen und bei Else wieder einfuegen?
         temp = [...packets];
         temp.splice(j, total_packets[i].length);
 
@@ -411,6 +410,7 @@ function create_kv_packets(values, compare_val) {
 
 }
 
+// Check if array2 is contained in array1
 function check_for_missing(array1,array2) {
 
     var i, j;
