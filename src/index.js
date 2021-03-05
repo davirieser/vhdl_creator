@@ -12,7 +12,7 @@ function init() {
 
     // Initialize Input-Fields
     document.getElementById("input_vars").value = 4;
-    document.getElementById("output_vars").value = 4;
+    document.getElementById("output_vars").value = 1;
 
     //
     kv_diagram_size = {height:4,width:4,depth:1};
@@ -244,6 +244,13 @@ function update_equation() {
 
         create_kv_packets(values,true);
 
+        // var equation = equation_from_packets(create_kv_packets(values,true));
+        //
+        // paragraph = document.createElement("p");
+        // text_node = document.createTextNode(output_signal_names[i] + " = " + equation);
+        // paragraph.appendChild(text_node);
+        // kv_dia_div.appendChild(paragraph);
+
     }
 
 }
@@ -259,7 +266,7 @@ function create_kv_diagram(values,output_num) {
         table.classList.add("kv_diagram");
         table.id = output_signal_names[output_num] + "_kv_diagram";
 
-        // FIXME: Breaks if num_inputs < 4
+        // FIXME: Breaks if num_inputs != 4
 
         // Create Top-Input-Row
         var tr = table.insertRow();
@@ -276,6 +283,7 @@ function create_kv_diagram(values,output_num) {
 
             for (j = 0; j < num_inputs; j ++) {
 
+                // FIXME : Fills in Values in the wrong Places
                 create_kv_inputs_td(tr,values[(i*4)+j],true,"kv_diagram_td kv_diagram_logic_td");
 
             }
@@ -299,52 +307,125 @@ function create_kv_diagram(values,output_num) {
 
 function create_kv_packets(values, compare_val) {
 
-    var i, j, k;
-    var cells = [];
+    var i, j, k, l;
     var packets = [];
+    var packets_old = [];
+    var total_packets = [];
 
     for (i = 0; i < values.length; i++) {
-        // TODO Replace Object Array for normal boolean Array
-        // Create Array with Objects for easier Use
-        cells.push({value:values[i],in_packet:false});
+        // Create Packet Array with single Packets
+        // TODO Implement Don't Care
+        if(values[i] == compare_val) {
+            // TODO Des zum Array machen
+            packets.push(i);
+            total_packets.push([i]);
+        }
     }
 
-    // Cycle through all Values
-    // First get all Packets with two Cells
-    for (i = 0; i < cells.length; i++) {
-        // Check if Cell is to be put in a Packet
-        if (cells[i].value == compare_val) {
+    console.log("Single Packets : " + packets);
+
+    var packets_found = packets.length;
+
+    while (packets_found > 1) {
+        packets_found = 0;
+        total_packets = total_packets.concat(packets_old);
+        packets_old = packets;
+        packets = [];
+        // Cycle through all Values
+        for (i = 0; i < packets_old.length; i++) {
             for (j = 0; j < num_inputs; j++){
+                var test_cell = (packets_old[i]^(2**j));
                 // Check if Packet could've already been checked to
                 // avoid creating Packets multiple times
-                if(i < (i^(2**j))){
+                if(packets_old[i] < test_cell){
+                    // TODO Da muss a For-Schleife eini
                     // Check if adjacent Cell should also be put in a Packet
                     // Get adjacent Cells by flipping each Bit after another (XOR)
-                    // TODO Implement Don't Care
-                    if(cells[(i^(2**j))].value == compare_val){
+                    if(packets_old.includes(test_cell)) {
+                        console.log("Packet [" + packets_old[i] + "," + test_cell + "] found");
                         // Mark a Packet
-                        packets.push([i,i^(2**j)]);
-                        // Indicate that both Cells already are in a Packet
-                        cells[i].in_packet = true;
-                        cells[i^(2**j)].in_packet = true;
-                        break;
+                        packets.push([packets_old[i],test_cell]);
+                        total_packets.push([packets_old[i],test_cell]);
+                        // packets_found++;
                     }
                 }
-            }
-            if(!cells[i].in_packet){
-                // If Cell was not put in Packet, create single Packet
-                packets.push([i]);
-                cells[i].in_packet = true;
             }
         }
     }
 
     // console.log("Cells : " + JSON.stringify(cells) + " \\and Packets : " + JSON.stringify(packets));
 
-    equation_from_packets(packets);
-
     // Create Packets of four from Packets of two
 
+    // Remove unneccessary Packets
+
+    console.log("All Packets : " + JSON.stringify(total_packets));
+    packets_old = [];
+    for (i = 0; i < values.length; i++) {
+        // Create Packet Array with all needed Values
+        if(values[i] == compare_val) {
+            packets_old.push(i);
+        }
+    }
+    packets = [];
+    for (i = 0; i < total_packets.length; i++) {
+        // Create Packet Array with recorded Values
+        for(j = 0; j < total_packets[i].length; j ++){
+            packets.push(total_packets[i][j]);
+        }
+    }
+
+    j = 0;
+    var temp;
+    for(i = 0; i < total_packets.length; i++) {
+
+        // TODO: Andersch kopieren? Mit Packets-Array machen
+        temp = [...packets];
+        temp.splice(j, total_packets[i].length);
+
+        // Check if all Cells are still covered
+        if(check_for_missing(temp, packets_old)) {
+
+            // Remove unneccessary Packet
+            console.log("Package : " + total_packets.splice(i,1) + " is unneccesary");
+            i --;
+
+            // Create new Reference Array
+            packets = [];
+            for (k = 0; k < total_packets.length; k++) {
+                // Create Packet Array with recorded Values
+                for(l = 0; l < total_packets[k].length; l ++){
+                    packets.push(total_packets[k][l]);
+                }
+            }
+
+        }else{
+            j += total_packets[i].length;
+        }
+
+    }
+
+    console.log("Needed Packets : " + JSON.stringify(total_packets));
+
+    return total_packets;
+
+}
+
+function check_for_missing(array1,array2) {
+
+    var i, j;
+    var found = 0;
+
+    for(j = 0; j < array2.length; j ++){
+        for(i = 0; i < array1.length; i++) {
+            if(array1[i] == array2[j]) {
+                found ++;
+                break;
+            }
+        }
+    }
+
+    return (found == array2.length);
 }
 
 function create_kv_inputs(tr,input_num,negated) {
@@ -364,6 +445,7 @@ function create_kv_inputs(tr,input_num,negated) {
 function create_kv_inputs_td(tr,text,negated,classes) {
 
     var td = tr.insertCell();
+
     if(classes){
         classes.split(" ").forEach(class_string => {
             td.classList.add(class_string);
@@ -386,10 +468,10 @@ function equation_from_packets(packets) {
     var output_string = "";
 
     for (i = 0; i < packets.length; i++) {
-        output_string += equation_from_packet(packets[i]) + "&";
+        output_string += equation_from_packet(packets[i]) + " | ";
     }
 
-    output_string = output_string.slice(0,-1);
+    output_string = output_string.slice(0,-3);
 
     console.log(output_string);
 
@@ -404,10 +486,9 @@ function equation_from_packet(packet) {
         var i, j;
         var negated_inputs = [];
 
-        var string_output = "";
+        console.log("Packaging : " + packet[0]);
 
-        console.log("Packaging : " + packet[0])
-
+        // Create Array with Input-Names
         for(i = 0; i < num_inputs; i++) {
             negated_inputs.push({
                 input_name: input_signal_names[i],
@@ -415,21 +496,27 @@ function equation_from_packet(packet) {
             });
         }
 
+        // Cycle through all Packets
         for(i = 0; i < (packet.length-1); i++) {
+            // Cycle through all Bits
             for (j = 0; j < num_inputs; j++) {
+                // Check which Bit is different
                 if ((packet[i] & (2 ** j)) != (packet[i+1] & (2 ** j))) {
-                    // Remove Input
+                    // Remove Input if Bits differ
                     negated_inputs.splice((num_inputs - j - 1),1);
                 }
             }
         }
 
+        // Create String Output
+        var string_output = "(";
         for(i = 0; i < negated_inputs.length; i++) {
-            string_output += (negated_inputs[i].negated ? "not " : "") + negated_inputs[i].input_name + "|";
+            string_output += (negated_inputs[i].negated ? "not " : "") + negated_inputs[i].input_name + " & ";
         }
 
         // Remove "|"-Operator from the End of the String
-        string_output = string_output.slice(0, -1);
+        string_output = string_output.slice(0, -3);
+        string_output += ')';
 
         console.log(packet + " => " + string_output);
 
