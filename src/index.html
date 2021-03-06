@@ -21,12 +21,12 @@
             <div class="input_fields">
 
                 <label for="input_vars">Number of Input-Variables</label>
-                <input type="number" name="input_vars" id="input_vars" onchange="variable_change()">
+                <input type="number" name="input_vars" id="input_vars" min=1 onchange="variable_change()">
 
                 <br>
 
                 <label for="output_vars">Number of Output-Variables</label>
-                <input type="number" name="output_vars" id="output_vars" onchange="variable_change()">
+                <input type="number" name="output_vars" id="output_vars" min=1 onchange="variable_change()">
 
                 <!--
                     <br>
@@ -39,43 +39,46 @@
 
             </div>
 
-        </center>
+            <h1>Wahrheitstabelle</h1>
 
-        <h1>Wahrheitstabelle</h1>
+            <div class="truth_table_div" id="truth_table_div">
 
-        <div class="truth_table_div" id="truth_table_div">
+            </div>
 
-        </div>
+            <h1>KV-Diagramme</h1>
 
-        <h1>KV-Diagramme</h1>
+            <div class="karnaugh_map_div" id="karnaugh_map_container">
 
-        <div class="karnaugh_map_div" id="karnaugh_map_container">
+            </div>
 
-        </div>
+            <div class="vhdl_script_div" id="vhdl_script_whole">
 
-        <div class="vhdl_script_div" id="vhdl_script_whole">
+                <h1>VHDL-Skript</h1>
 
-            <h1>VHDL-Skript</h1>
-
-            <div class="vhdl_script_div" id="vhdl_script_entity">
+                <label for="entityName">Entity-Name : </label>
+                <input type="text" value="main" name="entityName" id="entityName" onchange="create_vhdl_code()">
 
                 <h3>Entity</h3>
 
-            </div>
+                <div class="vhdl_script_div" id="vhdl_script_entity">
 
-            <div class="vhdl_script_div" id="vhdl_script_architecture">
+                </div>
 
                 <h3>Architecture</h3>
 
-            </div>
+                <div class="vhdl_script_div" id="vhdl_script_architecture">
 
-            <div class="vhdl_script_div" id="vhdl_script_testbench">
+                </div>
 
                 <h3>Testbench</h3>
 
+                <div class="vhdl_script_div" id="vhdl_script_testbench">
+
+                </div>
+
             </div>
 
-        </div>
+        </center>
 
     </body>
 

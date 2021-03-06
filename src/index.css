@@ -1,20 +1,32 @@
+html, body, div, span, object, iframe, h1, h2, h3, h4, h5, h6, p, blockquote, pre, abbr, address, cite, code, del, dfn, em, img, ins, kbd, q, samp, small, strong, sub, sup, var, b, i, dl, dt, dd, ol, ul, li, fieldset, form, label, legend, table, caption, tbody, tfoot, thead, tr, th, td, article, aside, canvas, details, figcaption, figure,  footer, header, hgroup, menu, nav, section, summary, time, mark, audio, video {
+    margin:0;
+    padding:0;
+    outline:0;
+    vertical-align:baseline;
+    background:transparent;
+    color: white;
+}
+
 body{
     font-family: Arial;
     font-size: 5;
+    background-color: rgb(65, 65, 65);
+    color: white;
 }
 
 .no_padding{
-    padding: 0;
-    margin: 0;
+    padding: 0%;
+    margin: 0%;
 }
 
 .truth_table{
-    border: 0.25ex solid black;
+    border: 0.25ex solid white;
+    table-layout: auto;
     border-collapse: collapse;
 }
 
 .truth_table_header{
-    border-bottom: 0.25ex solid black;
+    border-bottom: 0.25ex solid white;
 }
 
 .truth_table_header input{
@@ -22,11 +34,11 @@ body{
 }
 
 .truth_table_td{
-    border-right: 0.25ex solid black;
+    border-right: 0.25ex solid white;
 }
 
 .double_border{
-    border-left: 0.5ex solid black;
+    border-left: 0.5ex solid white;
 }
 
 .kv_diagram{
@@ -34,8 +46,8 @@ body{
 }
 
 .kv_diagram_logic_td{
-    align-content: center;
-    border: 0.25ex solid black;
+    text-align: center;
+    border: 0.25ex solid white;
 }
 
 .kv_diagram_name_td{
@@ -43,22 +55,46 @@ body{
 }
 
 .name_input{
-    background-color: white;
-}
-
-.name_input:focus{
-    outline: none;
+    background-color: rgb(65, 65, 65);
+    text-align: center;
+    /* font-size: 1em; */
 }
 
 .logic_input{
-    width: inherit;
     border: none;
-    background-color: white;
+    background-color: rgb(65, 65, 65);
+    text-align: center;
+    /* font-size: 1em; */
 }
-.logic_input:focus{
+
+input{
+    background-color: rgb(65, 65, 65);
+    color: white;
+}
+
+input:focus{
+    outline: none;
+}
+
+textarea{
+    resize: none;
+    background-color: rgb(65, 65, 65);
+}
+
+textarea:focus{
     outline: none;
 }
 
 .negated_logic{
-    text-decoration: overline black;
+    text-decoration: overline white;
+}
+
+.code_area{
+  font-family: Consolas,"courier new";
+  color: white;
+  padding: 2px;
+  font-size: 105%;
+  border: 0.1ex solid white;
+  border-radius: 1ex;
+  word-break: break-all;
 }
