@@ -1,4 +1,7 @@
 
+// var unhandled = require('electron-unhandled');
+// unhandled();
+
 var {app, BrowserWindow, screen} = require('electron');
 
 let win = null;

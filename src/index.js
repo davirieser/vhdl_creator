@@ -17,7 +17,7 @@ function init() {
 
     // Initialize Input-Fields
     document.getElementById("input_vars").value = 4;
-    document.getElementById("output_vars").value = 1;
+    document.getElementById("output_vars").value = 2;
 
     // Initialize Signal-Names
     variable_change();
@@ -74,17 +74,38 @@ function variable_change() {
     };
 
     // Draw Table
-    create_truth_table();
+    update_truth_table();
 
     // Update Equations
     update_equation();
 
     // Create VHDL-Code
-    create_vhdl_code();
+    // update_vhdl_code();
 
 }
 
-function create_truth_table(){
+function change_signal_name(signal_num,signal_name) {
+    // Check that Signal_Number is valid (In the range of the Signal-Names-Array)
+    if ((signal_num >= 0) && (signal_num < (num_inputs + num_outputs))) {
+        // Change Signal-Name using the Signal-Number
+        signal_names[signal_num] = signal_name;
+        if (signal_num < num_inputs) {
+            input_signal_names[signal_num] = signal_name;
+        }else {
+            output_signal_names[signal_num - num_inputs] = signal_name;
+        }
+    }else{
+        console.log("Error renaming Signal Number " + signal_num + " : Out of Bounds");
+    }
+}
+
+/* -----------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+----- Truth Table Functions ----------------------------------------------------
+--------------------------------------------------------------------------------
+----------------------------------------------------------------------------- */
+
+function update_truth_table() {
 
     // Get Div in which the Table should be inserted
     var truth_table_div = document.getElementById("truth_table_div");
@@ -94,14 +115,26 @@ function create_truth_table(){
         truth_table_div.removeChild(truth_table_div.lastChild);
     }
 
+    truth_table_div.append(create_truth_table());
+
+}
+
+function create_truth_table(){
+
     if(num_inputs < 8){
 
         var i, j;
 
         // Create New Table
+        var container = document.createElement("div");
+        add_classes(container, "divTableCell");
         var table = document.createElement('table');
         table.id = "truth_table";
         table.classList.add("truth_table");
+
+        var header = document.createElement("h1");
+        header.appendChild(document.createTextNode("Truth Table"));
+        container.appendChild(header);
 
         // Create Header-Column
         var tr = table.insertRow();
@@ -139,100 +172,22 @@ function create_truth_table(){
             }
         }
 
-        // Insert new Table
-        truth_table_div.appendChild(table);
+        container.appendChild(table);
 
-        truth_table_div.appendChild(document.createElement("br"));
+        // Return Table
+        return container;
 
     }else{
 
-        var error_string =  "Please refrain from using more than 7 Inputs - "+
+        var error_string =  "Please refrain from using more than 7 Inputs - " +
                             "I don't want to fry your computer";
 
         paragraph = document.createElement("p");
         text_node = document.createTextNode(error_string);
         paragraph.appendChild(text_node);
 
-        truth_table_div.appendChild(paragraph);
+        return paragraph;
     }
-}
-
-function create_latex_truth_table() {
-
-    if(num_inputs > 0){
-
-        var i, j;
-        var latex_code;
-
-        // Create Latex Tabular-Tag
-        latex_code = "\\begin{tabular}[";
-        for(i = 0; i < num_inputs; i++) {latex_code += "c|"}
-        latex_code += "|"
-        for(i = 0; i < (num_outputs - 1); i++) {latex_code += "c|"}
-        latex_code += "c]\n\t";
-
-        // Create Header
-        for(i = 0; i < num_inputs; i++) {
-            latex_code += input_signal_names[i] + "&";
-        }
-        // Seperate Inputs and Outputs
-        latex_code += " ";
-        for(i = 0; i < (num_outputs-1); i++) {
-            latex_code += output_signal_names[i] + "&";
-        }
-        // Insert Latex-Newline
-        latex_code += output_signal_names[i] + "\\\\\n";
-
-        // Create Table Row by Row
-        for(i = 0; i < (2**num_inputs); i++) {
-
-            // Indent for nicer Code
-            latex_code += "\t";
-
-            // Create Input-Columns
-            for(j = num_inputs; j > 0; j--) {
-                latex_code += ((((i >> (j - 1)) & 1) == 1) ? "1" : "0") + "&";
-            }
-
-            // Seperate Inputs and Outputs
-            latex_code += " ";
-
-            // Check that there Output-Columns
-            if(num_outputs > 0){
-                // Create Output-Columns
-                for(j = 0; j < (num_outputs-1); j++) {
-                    latex_code += output_values[j][i] + "&";
-                }
-                latex_code += output_values[j][i];
-            }
-
-            // Insert Latex-Newline
-            latex_code += "\\\\\n";
-
-        }
-
-        latex_code += "\\end{tabular}";
-
-        latex_container = document.createElement("textarea");
-        latex_container.rows = 3 + (2 ** (num_inputs));
-        latex_container.cols = 30 + 2 * (num_inputs + num_outputs);
-        latex_container.readOnly = true;
-        latex_container.id = "latex_truth_table";
-        var text_node = document.createTextNode(latex_code);
-        latex_container.classList.add("code_area");
-        latex_container.appendChild(text_node);
-
-        return latex_container;
-
-    }else{
-
-        var error_paragraph = document.createElement("p");
-        var text_node = document.createTextNode("Cannot create Latex-Truth-Table without Inputs");
-        error_paragraph.appendChild(text_node);
-
-        return error_paragraph;
-    }
-
 }
 
 function create_signal_input(signal_num) {
@@ -296,12 +251,19 @@ function create_logic_input(val,changable,cell_id) {
 
 }
 
+/* -----------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+----- Update Functions ---------------------------------------------------------
+--------------------------------------------------------------------------------
+----------------------------------------------------------------------------- */
+
 function update_equation() {
 
     var i, j;
     var values;
-    var kv_dia;
-    var kv_dia_div = document.getElementById("karnaugh_map_container");
+    var kv_table;
+    var kv_div;
+    var kv_container = document.getElementById("karnaugh_map_container");
 
     var equation = "";
     var heading;
@@ -311,8 +273,8 @@ function update_equation() {
     var input;
 
     // Remove previously created Diagrams
-    while (kv_dia_div.hasChildNodes()) {
-        kv_dia_div.removeChild(kv_dia_div.lastChild);
+    while (kv_container.hasChildNodes()) {
+        kv_container.removeChild(kv_container.lastChild);
     }
 
     if((num_inputs >= 2) & (num_inputs <= 6)){
@@ -324,45 +286,55 @@ function update_equation() {
 
             output_values[i] = values;
 
+            kv_div = document.createElement("div");
+            add_classes(kv_div, "divTableCell");
+
             // Create Heading with Signal-Name
             heading = document.createElement("h2");
             text_node = document.createTextNode("Signal : \"" + output_signal_names[i] + "\"");
             heading.classList.add("kv_heading");
             heading.appendChild(text_node);
-            kv_dia_div.appendChild(heading);
+            kv_div.appendChild(heading);
 
             packets = create_kv_packets(values,true);
             output_packets[i] = packets;
 
             // Create KV-Diagram
-            kv_dia = create_kv_diagram(values,i);
+            kv_table = create_kv_diagram(values,i);
             // Check that KV-Diagram is valid
             // Could be invalid if (2 < Number of Inputs < 6) => see "create_kv_diagram()"
-            if (kv_dia){
-                kv_dia_div.appendChild(kv_dia);
+            if (kv_table){
+                kv_div.appendChild(kv_table);
             }
 
             var packet_selectors = create_kv_packet_selectors(i);
-            kv_dia_div.appendChild(packet_selectors);
+
+            kv_div.appendChild(document.createElement("br"));
+            kv_div.appendChild(packet_selectors);
 
             // Create Paragraph with Boolean Equation
-            var equation = equation_from_packets(packets);
-            paragraph = document.createElement("p");
-            text_node = document.createTextNode(output_signal_names[i] + " = " + equation);
-            paragraph.appendChild(text_node);
-            kv_dia_div.appendChild(paragraph);
+            kv_div.appendChild(create_equations(i));
+            kv_div.appendChild(document.createElement("br"));
 
             // Create Code-Box with Latex-Karnaugh-Map
-            kv_dia_div.appendChild(create_latex_karnaugh_diagram(values,packets,kv_diagram_size));
+            kv_div.appendChild(create_latex_karnaugh_diagram(values,packets,kv_diagram_size));
+
+            kv_container.appendChild(kv_div);
 
         }
 
+        // Highlight previously selected Packets
+        rehighlight_packets();
+
+        // Remove old Latex Truth-Table
         if (document.getElementById("latex_truth_table")){
             document.getElementById("truth_table_div").removeChild(document.getElementById("latex_truth_table"));
         }
+        // Create New Latex Truth-Table
         document.getElementById("truth_table_div").appendChild(create_latex_truth_table());
 
-        create_vhdl_code();
+        // Update VHDL-Code
+        update_vhdl_code();
 
     }else{
 
@@ -400,83 +372,11 @@ function get_truth_table_values(num_output) {
 
 }
 
-function create_latex_karnaugh_diagram(values, packets, kv_dia_params) {
-
-    var latex_string =  "\\begin{karnaugh-map}[" + kv_diagram_size.height +
-                        "][" + kv_diagram_size.width + "][" + kv_diagram_size.depth + "]\n\t" +
-                        "\\manualterms{" + values + "}\n" +
-                        create_implicant_string(packets) +
-                        "\\end{karnaugh-map}";
-    latex_code = document.createElement("textarea");
-    latex_code.rows = packets.length + (num_inputs < 6 ? 3 : 4);
-    latex_code.cols = 100;
-    latex_code.readOnly = true;
-    var text_node = document.createTextNode(latex_string);
-    latex_code.classList.add("code_area");
-    latex_code.appendChild(text_node);
-
-    return latex_code;
-
-}
-
-function create_kv_packet_selectors(output_num) {
-
-    var i;
-    var selector;
-    var label;
-    var selectors = document.createElement("div");
-
-    console.log("Reviewing Packet Selectors");
-
-    if(output_packets[output_num]){
-
-        if(output_packets[output_num].length != 0) {
-
-            for(i = 0; i < output_packets[output_num].length; i++) {
-
-                label = document.createElement("label");
-                selector = document.createElement("input");
-
-                label.htmlFor = "kv_" + output_num + "_selector_" + i;
-                label.appendChild(document.createTextNode("Packet " + i));
-
-                selector.type = "radio";
-                selector.name = "kv_" + output_num + "_selector";
-                selector.id = label.htmlFor;
-                selector.onchange = (function (output_num,j_i) {
-                    return function () {
-                        highlight_packet(output_num,j_i);
-                    };
-                }(output_num,i));
-
-                selectors.appendChild(label);
-                selectors.appendChild(selector);
-
-            }
-
-            return selectors;
-
-        }
-
-    }
-
-    return document.createTextNode("No Packets to be selected");
-
-}
-
-function create_implicant_string(packets, string) {
-    var i;
-    var string = "";
-    for(i = 0; i < packets.length; i++) {
-        // TODO Implement Implicantedge and ImplicantCorner
-        if(packets[i].length == 1) {
-            string += "\t\\implicant" + ("{" + packets[i][0] + "}").repeat(2)  + "\n";
-        }else{
-            string += "\t\\implicant{" + packets[i].join("}{") + "}\n";
-        }
-    }
-    return string;
-}
+/* -----------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+----- KV-Diagram Functions -----------------------------------------------------
+--------------------------------------------------------------------------------
+----------------------------------------------------------------------------- */
 
 function create_kv_diagram(values,output_num) {
 
@@ -616,58 +516,55 @@ function create_kv_packets(values, compare_val) {
 
 }
 
-function check_if_bit_flipped(number_one,number_two) {
+function create_equations(num_output) {
+
+    var container = document.createElement("div");
+    container.appendChild(document.createElement("br"));
+    container.appendChild(document.createTextNode(output_signal_names[num_output] + " = "));
+    container.appendChild(span_equation_from_packets(num_output));
+    container.appendChild(document.createElement("br"));
+
+    return container;
+
+}
+
+function create_kv_packet_selectors(output_num) {
 
     var i;
-    var flipped = 0;
+    var selector;
+    var label;
+    var selectors = document.createElement("il");
 
-    for (i = 0; i < num_inputs; i++) {
-        if ((number_one ^ (2**i)) == number_two) {
-            flipped++;
-        }
-    }
+    if(output_packets[output_num]){
 
-    if(flipped == 1) {
-        return true;
-    }
-    return false;
+        if(output_packets[output_num].length != 0) {
 
-}
+            for(i = 0; i < output_packets[output_num].length; i++) {
 
-// Check if array2 is contained in array1
-function check_for_missing(array1,array2) {
+                selector = document.createElement("li");
 
-    var i, j;
-    var found = 0;
+                selector.appendChild(document.createTextNode("Packet " + i));
 
-    for(j = 0; j < array2.length; j ++){
-        for(i = 0; i < array1.length; i++) {
-            if(array1[i] == array2[j]) {
-                found ++;
-                // Break on the first Match
-                break;
+                selector.id = "kv_" + output_num + "_selector_" + i;
+                add_classes(selector, "kv_radio_selector");
+                selector.onclick = (function (output_num,j_i) {
+                    return function () {
+                        highlight_packet(output_num,j_i);
+                    };
+                }(output_num,i));
+
+                selectors.appendChild(selector);
+
             }
+
+            return selectors;
+
         }
+
     }
 
-    return (found == array2.length);
-}
+    return document.createTextNode("No Packets to be selected");
 
-// Check if array1 and array2 have a duplicate Value
-function check_for_duplicate(array1,array2) {
-
-    var i, j;
-    var found = 0;
-
-    for(j = 0; j < array2.length; j ++){
-        for(i = 0; i < array1.length; i++) {
-            if(array1[i] == array2[j]) {
-                return true;
-            }
-        }
-    }
-
-    return false;
 }
 
 function highlight_packet(output_num, packet_num) {
@@ -681,10 +578,10 @@ function highlight_packet(output_num, packet_num) {
         for(i = 0; i < output_packets[output_num][highlight_packets[output_num]].length; i++) {
 
             node_id = "kv_diagram_"+output_num+"_cell_"+output_packets[output_num][highlight_packets[output_num]][i]
-            node = document.getElementById(node_id).parentNode;
+            node = document.getElementById(node_id);
 
             if(node){
-                node.classList.remove("kv_diagram_highlight");
+                node.parentNode.classList.remove("kv_diagram_highlight");
             }
         }
 
@@ -693,13 +590,25 @@ function highlight_packet(output_num, packet_num) {
     for(i = 0; i < output_packets[output_num][packet_num].length; i++) {
 
         node_id = "kv_diagram_"+output_num+"_cell_"+output_packets[output_num][packet_num][i]
-        node = document.getElementById(node_id).parentNode;
+        node = document.getElementById(node_id);
 
         if(node){
-            node.classList.add("kv_diagram_highlight");
+            node.parentNode.classList.add("kv_diagram_highlight");
         }
 
         highlight_packets[output_num] = packet_num;
+    }
+
+}
+
+function rehighlight_packets(){
+
+    var i;
+
+    for (i = 0; i < num_outputs; i++) {
+        if (highlight_packets[i] != -1) {
+            highlight_packet(i, highlight_packets[i]);
+        }
     }
 
 }
@@ -734,6 +643,12 @@ function create_kv_inputs_td(tr,text,negated,classes,id) {
     td.appendChild(span);
 
 }
+
+/* -----------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+----- Packet-Convertion-Functions ----------------------------------------------
+--------------------------------------------------------------------------------
+----------------------------------------------------------------------------- */
 
 function equation_from_packets(packets) {
 
@@ -810,22 +725,112 @@ function equation_from_packet(packet) {
 
 }
 
-function change_signal_name(signal_num,signal_name) {
-    // Check that Signal_Number is valid (In the range of the Signal-Names-Array)
-    if ((signal_num >= 0) && (signal_num < (num_inputs + num_outputs))) {
-        // Change Signal-Name using the Signal-Number
-        signal_names[signal_num] = signal_name;
-        if (signal_num < num_inputs) {
-            input_signal_names[signal_num] = signal_name;
-        }else {
-            output_signal_names[signal_num - num_inputs] = signal_name;
+function span_equation_from_packets(output_num) {
+
+    var i;
+    var output_string = "";
+
+    if(packets.length != 0) {
+
+        var container = document.createElement("span");
+
+        for (i = 0; i < (packets.length - 1); i++) {
+            container.appendChild(span_equation_from_packet(output_num, i));
+            container.appendChild(document.createTextNode(" ∨ "));
+            container.appendChild(document.createElement("br"));
         }
-    }else{
-        console.log("Error renaming Signal Number " + signal_num + " : Out of Bounds");
+        container.appendChild(span_equation_from_packet(output_num, i));
+
+        return container;
+
     }
+
+    return document.createTextNode("0");
+
 }
 
-function create_vhdl_code() {
+function span_equation_from_packet(output_num, packet_num) {
+
+    var packet = output_packets[output_num][packet_num];
+
+    if(!(packet.length == 0)) {
+
+        var i, j, len;
+        var negated_inputs = [];
+
+        // Create Array with Input-Names
+        for(i = 0; i < num_inputs; i++) {
+            negated_inputs.push({
+                input_name: input_signal_names[i],
+                negated: !(((packet[0] >> (num_inputs - i - 1)) & 1) == 1)
+            });
+        }
+
+        len = negated_inputs.length;
+
+        // Cycle through all Packets
+        for(i = 1; i < packet.length; i *= 2) {
+            // Cycle through all Bits
+            for (j = 0; j < num_inputs; j++) {
+                // Check which Bit is different
+                if ((packet[0] & (2 ** j)) != (packet[i] & (2 ** j))) {
+                    // Remove Input if Bits differ
+                    negated_inputs.splice(((len--) - j - 1),1);
+                }
+            }
+        }
+
+        var container = document.createElement("span");
+        add_classes(container, "span_packet_selector");
+
+        if(negated_inputs.length != 0) {
+
+            container.appendChild(document.createTextNode("("));
+
+            for(i = 0; i < negated_inputs.length; i++) {
+                container.appendChild(create_span_selector(negated_inputs,i));
+            }
+
+            container.onclick = function() {
+                highlight_packet(output_num,packet_num);
+            };
+
+            container.appendChild(document.createTextNode(")"));
+
+            return container;
+
+        }
+
+        return document.createTextNode("1");
+
+    }
+
+}
+
+function create_span_selector(negated_inputs,packet_num) {
+
+    var container = document.createElement("span");
+    var span = document.createElement("span")
+    var text_node = document.createTextNode(negated_inputs[packet_num].input_name);
+    if(negated_inputs[packet_num].negated){
+        add_classes(span, "negated_logic");
+    }
+    span.appendChild(text_node);
+    container.appendChild(span);
+    if(packet_num < (negated_inputs.length - 1)){
+        container.appendChild(document.createTextNode(" ∧ "));
+    }
+    return container;
+
+}
+
+/* -----------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+----- VHDL-Functions -----------------------------------------------------------
+--------------------------------------------------------------------------------
+----------------------------------------------------------------------------- */
+
+function update_vhdl_code() {
 
     var i;
 
@@ -945,6 +950,139 @@ function create_vhdl_testbench() {
 
 }
 
+
+/* -----------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+----- Latex Functions ----------------------------------------------------------
+--------------------------------------------------------------------------------
+----------------------------------------------------------------------------- */
+
+function create_latex_truth_table() {
+
+    if(num_inputs > 0){
+
+        var i, j;
+        var latex_code;
+
+        // Create Latex Tabular-Tag
+        latex_code = "\\begin{tabular}[";
+        for(i = 0; i < num_inputs; i++) {latex_code += "c|"}
+        latex_code += "|"
+        for(i = 0; i < (num_outputs - 1); i++) {latex_code += "c|"}
+        latex_code += "c]\n\t";
+
+        // Create Header
+        for(i = 0; i < num_inputs; i++) {
+            latex_code += input_signal_names[i] + "&";
+        }
+        // Seperate Inputs and Outputs
+        latex_code += " ";
+        for(i = 0; i < (num_outputs-1); i++) {
+            latex_code += output_signal_names[i] + "&";
+        }
+        // Insert Latex-Newline
+        latex_code += output_signal_names[i] + "\\\\\n";
+
+        // Create Table Row by Row
+        for(i = 0; i < (2**num_inputs); i++) {
+
+            // Indent for nicer Code
+            latex_code += "\t";
+
+            // Create Input-Columns
+            for(j = num_inputs; j > 0; j--) {
+                latex_code += ((((i >> (j - 1)) & 1) == 1) ? "1" : "0") + "&";
+            }
+
+            // Seperate Inputs and Outputs
+            latex_code += " ";
+
+            // Check that there Output-Columns
+            if(num_outputs > 0){
+                // Create Output-Columns
+                for(j = 0; j < (num_outputs-1); j++) {
+                    latex_code += output_values[j][i] + "&";
+                }
+                latex_code += output_values[j][i];
+            }
+
+            // Insert Latex-Newline
+            latex_code += "\\\\\n";
+
+        }
+
+        latex_code += "\\end{tabular}";
+
+        var latex_container = document.createElement("div");
+        add_classes(latex_container, "divTableCell");
+        latex_container.id = "latex_truth_table";
+
+        var header = document.createElement("h1");
+        header.appendChild(document.createTextNode("Latex Truth Table"));
+        latex_container.appendChild(header);
+
+        var text_area = document.createElement("textarea");
+        text_area.rows = 3 + (2 ** (num_inputs));
+        text_area.cols = 30 + 2 * (num_inputs + num_outputs);
+        text_area.readOnly = true;
+        var text_node = document.createTextNode(latex_code);
+        text_area.classList.add("code_area");
+        text_area.appendChild(text_node);
+
+        latex_container.append(text_area);
+
+        return latex_container;
+
+    }else{
+
+        var error_paragraph = document.createElement("p");
+        var text_node = document.createTextNode("Cannot create Latex-Truth-Table without Inputs");
+        error_paragraph.appendChild(text_node);
+
+        return error_paragraph;
+    }
+
+}
+
+function create_latex_karnaugh_diagram(values, packets, kv_dia_params) {
+
+    var latex_string =  "\\begin{karnaugh-map}[" + kv_diagram_size.height +
+                        "][" + kv_diagram_size.width + "][" + kv_diagram_size.depth + "]\n\t" +
+                        "\\manualterms{" + values + "}\n" +
+                        create_implicant_string(packets) +
+                        "\\end{karnaugh-map}";
+    latex_code = document.createElement("textarea");
+    latex_code.rows = 3 + packets.length;
+    latex_code.cols = 30 + (2 ** (num_inputs + 1));
+    latex_code.readOnly = true;
+    var text_node = document.createTextNode(latex_string);
+    latex_code.classList.add("code_area");
+    latex_code.appendChild(text_node);
+
+    return latex_code;
+
+}
+
+function create_implicant_string(packets, string) {
+    var i;
+    var string = "";
+    for(i = 0; i < packets.length; i++) {
+        // TODO Implement Implicantedge and ImplicantCorner
+        if(packets[i].length == 1) {
+            string += "\t\\implicant" + ("{" + packets[i][0] + "}").repeat(2)  + "\n";
+        }else{
+            string += "\t\\implicant{" + packets[i].join("}{") + "}\n";
+        }
+    }
+    return string;
+}
+
+/* -----------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+----- Helper Functions ---------------------------------------------------------
+--------------------------------------------------------------------------------
+----------------------------------------------------------------------------- */
+
 function add_classes(node, classes) {
 
     if(classes){
@@ -953,6 +1091,60 @@ function add_classes(node, classes) {
         });
     }
 
+}
+
+function check_if_bit_flipped(number_one,number_two) {
+
+    var i;
+    var flipped = 0;
+
+    for (i = 0; i < num_inputs; i++) {
+        if ((number_one ^ (2**i)) == number_two) {
+            flipped++;
+        }
+    }
+
+    if(flipped == 1) {
+        return true;
+    }
+    return false;
+
+}
+
+// Check if array2 is contained in array1
+function check_for_missing(array1,array2) {
+
+    var i, j;
+    var found = 0;
+
+    for(j = 0; j < array2.length; j ++){
+        for(i = 0; i < array1.length; i++) {
+            if(array1[i] == array2[j]) {
+                found ++;
+                // Break on the first Match
+                break;
+            }
+        }
+    }
+
+    return (found == array2.length);
+}
+
+// Check if array1 and array2 have a duplicate Value
+function check_for_duplicate(array1,array2) {
+
+    var i, j;
+    var found = 0;
+
+    for(j = 0; j < array2.length; j ++){
+        for(i = 0; i < array1.length; i++) {
+            if(array1[i] == array2[j]) {
+                return true;
+            }
+        }
+    }
+
+    return false;
 }
 
 // Execute Initialisation-Function when the Page is finished loading

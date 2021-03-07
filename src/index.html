@@ -14,40 +14,46 @@
     <body>
 
         <center>
-            <h1>
-                Create VHDL-Scripts
-            </h1>
 
-            <div class="input_fields">
+            <div class="Header" id="Header">
 
-                <label for="input_vars">Number of Input-Variables</label>
-                <input type="number" name="input_vars" id="input_vars" min=1 onchange="variable_change()">
-
+                <h1>
+                    Create VHDL-Scripts
+                </h1>
                 <br>
 
-                <label for="output_vars">Number of Output-Variables</label>
-                <input type="number" name="output_vars" id="output_vars" min=1 onchange="variable_change()">
+                <div class="input_fields">
 
-                <!--
+                    <label for="input_vars">Number of Input-Variables : </label>
+                    <input type="number" name="input_vars" id="input_vars" min=1 max=7 onchange="variable_change()">
+
                     <br>
 
-                    <label for="KDNF">Konjunktive Normalform</label>
-                    <input type="radio" id="KDNF" name="boolean_logic_form" value="KDNF" onchange="variable_change()" selected>
-                    <label for="DDNF">Disjunktive Normalform</label>
-                    <input type="radio" id="DDNF" name="boolean_logic_form" value="DDNF" onchange="variable_change()">
-                -->
+                    <label for="output_vars">Number of Output-Variables : </label>
+                    <input type="number" name="output_vars" id="output_vars" min=1 max=10 onchange="variable_change()">
+
+                    <!--
+                        <br>
+
+                        <label for="KDNF">Konjunktive Normalform</label>
+                        <input type="radio" id="KDNF" name="boolean_logic_form" value="KDNF" onchange="variable_change()" selected>
+                        <label for="DDNF">Disjunktive Normalform</label>
+                        <input type="radio" id="DDNF" name="boolean_logic_form" value="DDNF" onchange="variable_change()">
+                    -->
+
+                </div>
 
             </div>
 
-            <h1>Wahrheitstabelle</h1>
+            <!-- <h1>Wahrheitstabelle</h1> -->
 
-            <div class="truth_table_div" id="truth_table_div">
+            <div class="truth_table_div divTable" id="truth_table_div">
 
             </div>
 
             <h1>KV-Diagramme</h1>
 
-            <div class="karnaugh_map_div" id="karnaugh_map_container">
+            <div class="karnaugh_map_div divTable" id="karnaugh_map_container">
 
             </div>
 
@@ -58,15 +64,29 @@
                 <label for="entityName">Entity-Name : </label>
                 <input type="text" value="main" name="entityName" id="entityName" onchange="create_vhdl_code()">
 
-                <h3>Entity</h3>
+                <div class="divTable">
 
-                <div class="vhdl_script_div" id="vhdl_script_entity">
+                    <div class="divTableCell">
 
-                </div>
+                        <h3>Entity</h3>
+                        <br>
 
-                <h3>Testbench</h3>
+                        <div class="vhdl_script_div" id="vhdl_script_entity">
 
-                <div class="vhdl_script_div" id="vhdl_script_testbench">
+                        </div>
+
+                    </div>
+
+                    <div class="divTableCell">
+
+                        <h3>Testbench</h3>
+                        <br>
+
+                        <div class="vhdl_script_div" id="vhdl_script_testbench">
+
+                        </div>
+
+                    </div>
 
                 </div>
 

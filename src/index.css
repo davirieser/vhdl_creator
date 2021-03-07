@@ -8,10 +8,29 @@ html, body, div, span, object, iframe, h1, h2, h3, h4, h5, h6, p, blockquote, pr
 }
 
 body{
+    padding-bottom: 1em;
     font-family: Arial;
     font-size: 5;
     background-color: rgb(65, 65, 65);
     color: white;
+}
+
+.Header{
+    margin: 1em;
+    font-size: 200%;
+}
+
+input[type=number]::-webkit-outer-spin-button,
+input[type=number]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.Header input{
+    font-size: 100%;
+    width: auto;
+    border: none;
+    background-color: inherit;
 }
 
 .no_padding{
@@ -88,16 +107,41 @@ textarea:focus{
     outline: none;
 }
 
+.span_packet_selector{
+    color: red;
+    cursor: pointer;
+}
+
+.span_packet_selector span{
+    color: red;
+    cursor: pointer;
+}
+
 .negated_logic{
     text-decoration: overline white;
 }
 
 .code_area{
-  font-family: Consolas,"courier new";
-  color: white;
-  padding: 2px;
-  font-size: 105%;
-  border: 0.1ex solid white;
-  border-radius: 1ex;
-  word-break: break-all;
+    height: auto;
+    width: auto;
+    overflow: hidden;
+    font-family: Consolas,"courier new";
+    color: white;
+    padding: 2px;
+    /* font-size: 105%; */
+    border: 0.1ex solid white;
+    border-radius: 1ex;
+    word-break: break-all;
+}
+
+.divTable{
+	display: flex;
+    flex-wrap: wrap;
+    margin: 3em;
+    gap: 2em;
+}
+
+.divTableCell {
+    flex-grow: 1;
+	/* flex: 1 1 49%; */
 }
