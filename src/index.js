@@ -9,6 +9,8 @@ var input_logic_vals = [];
 var output_values = [];
 var output_packets = [];
 
+var highlight_packets = [];
+
 var kv_diagram_size = {height:0,width:0,depth:0};
 
 function init() {
@@ -47,6 +49,7 @@ function variable_change() {
             output_signal_names.pop();
             num_outputs --;
             output_values.pop();
+            highlight_packets.pop();
         }
         while (num_outputs < outputs) {
             output_signal_names[num_outputs] = "A_" + (num_outputs + 1);
@@ -57,6 +60,7 @@ function variable_change() {
             }
             output_values.push(x);
             output_packets.push([]);
+            highlight_packets.push(-1);
         }
 
         signal_names = input_signal_names.concat(output_signal_names);
@@ -245,6 +249,7 @@ function create_signal_input(signal_num) {
     newInput.onchange = (function (j_i) {
         return function () {
             change_signal_name(j_i,this.value);
+            variable_change();
         };
     }(signal_num));
 
@@ -337,6 +342,9 @@ function update_equation() {
                 kv_dia_div.appendChild(kv_dia);
             }
 
+            var packet_selectors = create_kv_packet_selectors(i);
+            kv_dia_div.appendChild(packet_selectors);
+
             // Create Paragraph with Boolean Equation
             var equation = equation_from_packets(packets);
             paragraph = document.createElement("p");
@@ -411,6 +419,51 @@ function create_latex_karnaugh_diagram(values, packets, kv_dia_params) {
 
 }
 
+function create_kv_packet_selectors(output_num) {
+
+    var i;
+    var selector;
+    var label;
+    var selectors = document.createElement("div");
+
+    console.log("Reviewing Packet Selectors");
+
+    if(output_packets[output_num]){
+
+        if(output_packets[output_num].length != 0) {
+
+            for(i = 0; i < output_packets[output_num].length; i++) {
+
+                label = document.createElement("label");
+                selector = document.createElement("input");
+
+                label.htmlFor = "kv_" + output_num + "_selector_" + i;
+                label.appendChild(document.createTextNode("Packet " + i));
+
+                selector.type = "radio";
+                selector.name = "kv_" + output_num + "_selector";
+                selector.id = label.htmlFor;
+                selector.onchange = (function (output_num,j_i) {
+                    return function () {
+                        highlight_packet(output_num,j_i);
+                    };
+                }(output_num,i));
+
+                selectors.appendChild(label);
+                selectors.appendChild(selector);
+
+            }
+
+            return selectors;
+
+        }
+
+    }
+
+    return document.createTextNode("No Packets to be selected");
+
+}
+
 function create_implicant_string(packets, string) {
     var i;
     var string = "";
@@ -453,7 +506,7 @@ function create_kv_diagram(values,output_num) {
 
             for (j = 0; j < num_inputs; j ++) {
                 var place = ((2**3) * right_negated[j]) + ((2**2) * right_negated[i]) + ((2**1) * middle_negated[j]) + ((2 **0) * middle_negated[i]);
-                create_kv_inputs_td(tr,values[place],true,"kv_diagram_td kv_diagram_logic_td");
+                create_kv_inputs_td(tr,values[place],true,"kv_diagram_td kv_diagram_logic_td",("kv_diagram_"+output_num+"_cell_"+place));
             }
 
             // Create Input-Name plus optional Negation
@@ -617,6 +670,40 @@ function check_for_duplicate(array1,array2) {
     return false;
 }
 
+function highlight_packet(output_num, packet_num) {
+
+    var i;
+    var node, node_id;
+
+    if( (highlight_packets[output_num] != -1) &&
+        (highlight_packets[output_num] < output_packets[output_num].length)){
+
+        for(i = 0; i < output_packets[output_num][highlight_packets[output_num]].length; i++) {
+
+            node_id = "kv_diagram_"+output_num+"_cell_"+output_packets[output_num][highlight_packets[output_num]][i]
+            node = document.getElementById(node_id).parentNode;
+
+            if(node){
+                node.classList.remove("kv_diagram_highlight");
+            }
+        }
+
+    }
+
+    for(i = 0; i < output_packets[output_num][packet_num].length; i++) {
+
+        node_id = "kv_diagram_"+output_num+"_cell_"+output_packets[output_num][packet_num][i]
+        node = document.getElementById(node_id).parentNode;
+
+        if(node){
+            node.classList.add("kv_diagram_highlight");
+        }
+
+        highlight_packets[output_num] = packet_num;
+    }
+
+}
+
 function create_kv_inputs(tr,input_num,negated) {
 
     create_kv_inputs_td(tr,"",true,"kv_diagram_td");
@@ -629,7 +716,7 @@ function create_kv_inputs(tr,input_num,negated) {
 
 }
 
-function create_kv_inputs_td(tr,text,negated,classes) {
+function create_kv_inputs_td(tr,text,negated,classes,id) {
 
     var td = tr.insertCell();
 
@@ -638,6 +725,9 @@ function create_kv_inputs_td(tr,text,negated,classes) {
     var span = document.createElement("span");
     if (!negated) {
         span.classList.add("negated_logic");
+    }
+    if(id) {
+        span.id = id;
     }
     var text_node = document.createTextNode(text);
     span.appendChild(text_node);
@@ -739,7 +829,7 @@ function create_vhdl_code() {
 
     var i;
 
-    var divs = ["vhdl_script_entity", "vhdl_script_architecture", "vhdl_script_testbench"];
+    var divs = ["vhdl_script_entity", "vhdl_script_testbench"];
 
     for (i = 0; i < divs.length; i ++) {
         div = document.getElementById(divs[i]);
@@ -750,8 +840,7 @@ function create_vhdl_code() {
     }
 
     document.getElementById(divs[0]).appendChild(create_vhdl_entity());
-    document.getElementById(divs[1]).appendChild(create_vhdl_architecture());
-    document.getElementById(divs[2]).appendChild(create_vhdl_testbench());
+    document.getElementById(divs[1]).appendChild(create_vhdl_testbench());
 
 }
 
@@ -772,25 +861,7 @@ function create_vhdl_entity() {
     }
     entity += output_signal_names[i] + "\t: out std_logic\n\t);\nend " + entity_name + ";";
 
-    var code_container = document.createElement("textarea");
-    code_container.rows = 6 + num_inputs + num_outputs + 2;
-    code_container.cols = 60;
-    code_container.readOnly = true;
-    code_container.classList.add("code_area");
-    var text_node = document.createTextNode(libraries + entity);
-    code_container.appendChild(text_node);
-
-    return code_container;
-
-}
-
-function create_vhdl_architecture() {
-
-    var i;
-
-    var entity_name = document.getElementById("entityName").value;
-
-    var architecture = "architecture structure of " + entity_name + " is\n\n";
+    var architecture = "\n\narchitecture structure of " + entity_name + " is\n\n";
 
     architecture += "\tbegin\n";
 
@@ -802,11 +873,11 @@ function create_vhdl_architecture() {
     architecture += "\n\nend structure;";
 
     var code_container = document.createElement("textarea");
-    code_container.rows = 4 + num_outputs + 2;
+    code_container.rows = 6 + num_inputs + num_outputs + 2 + 4 + num_outputs + 3;
     code_container.cols = 60;
     code_container.readOnly = true;
     code_container.classList.add("code_area");
-    var text_node = document.createTextNode(architecture);
+    var text_node = document.createTextNode(libraries + entity + architecture);
     code_container.appendChild(text_node);
 
     return code_container;
@@ -820,16 +891,20 @@ function create_vhdl_testbench() {
     var entity_name = document.getElementById("entityName").value;
 
     var libraries = "library ieee;\n\tuse ieee.std_logic_1164.all;\n\tuse ieee.numeric_std.all;\n\n";
+    libraries += "library work;\n\tuse work." + entity_name + ".all;\n\n";
 
     var entity = "entity tb_" + entity_name + " is\nend tb_" + entity_name + ";";
 
     var architecture = "\n\narchitecture behaviour of tb_" + entity_name + " is\n\n";
 
+    for(i = 0; i < num_inputs; i++) {
+        architecture += "\tsignal s_" + input_signal_names[i] + "\t: std_logic := '0';\n"
+    }
     for(i = 0; i < num_outputs; i++) {
-        architecture += "\tsignal s_" + output_signal_names[i] + "\t: std_logic := '0';\n\n"
+        architecture += "\tsignal s_" + output_signal_names[i] + "\t: std_logic := '0';\n"
     }
 
-    var component = "\tcomponent " + entity_name + " is\n\t\tport(\n\t\t\t";
+    var component = "\n\tcomponent " + entity_name + " is\n\t\tport(\n\t\t\t";
     for(i = 0; i < num_inputs; i++){
         component += input_signal_names[i] + "\t: in std_logic;\n\t\t\t";
     }
@@ -840,15 +915,27 @@ function create_vhdl_testbench() {
 
     architecture += component;
 
-    architecture += "\tbegin\n\n\t\tNOT IMPLEMENTED YET\n\n";
+    architecture += "\tbegin\n\n\t\tuut : work." + entity_name + " port map(\n";
 
-    // TODO
+    for(i = 0; i < num_inputs; i++) {
+        architecture += "\t\t\t" + input_signal_names[i] + " => s_" + input_signal_names[i] + ",\n";
+    }
+    for(i = 0; i < (num_outputs - 1); i++) {
+        architecture += "\t\t\t" + output_signal_names[i] + " => s_" + output_signal_names[i] + ",\n";
+    }
+    architecture += "\t\t\t" + output_signal_names[i] + " => s_" + output_signal_names[i] + "\n\t\t);\n\n"
 
-    architecture += "end behaviour;";
+    for(var iLauf = 0 ; iLauf < num_inputs; iLauf ++){
+
+        architecture += "\t\ts_"+input_signal_names[iLauf]+" <= '0','1' after "+(iLauf+1)+"00 ps,'0' after "+(iLauf+parseInt(num_inputs)+1)+"00 ps;\n"
+
+    }
+
+    architecture += "\n\nend behaviour;";
 
     var code_container = document.createElement("textarea");
-    code_container.rows = 9 + num_inputs + 2 * num_outputs + 11;
-    code_container.cols = 60;
+    code_container.rows = 26 + 4 * num_inputs + 3 * num_outputs;
+    code_container.cols = 80;
     code_container.readOnly = true;
     code_container.classList.add("code_area");
     var text_node = document.createTextNode(libraries + entity + architecture);

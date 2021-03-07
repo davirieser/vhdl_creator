@@ -54,17 +54,19 @@ body{
     padding: 0.5ex
 }
 
+.kv_diagram_highlight{
+    background-color: red;
+}
+
 .name_input{
     background-color: rgb(65, 65, 65);
     text-align: center;
-    /* font-size: 1em; */
 }
 
 .logic_input{
     border: none;
     background-color: rgb(65, 65, 65);
     text-align: center;
-    /* font-size: 1em; */
 }
 
 input{
@@ -79,6 +81,7 @@ input:focus{
 textarea{
     resize: none;
     background-color: rgb(65, 65, 65);
+    text-overflow: ellipsis;
 }
 
 textarea:focus{
