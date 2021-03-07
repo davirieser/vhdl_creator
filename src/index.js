@@ -11,6 +11,16 @@ var output_packets = [];
 
 var highlight_packets = [];
 
+// TODO Implement in KV-Diagram
+var negated_kv_inputs = [
+    [true,false,false,true],
+    [true,false,false,true],
+    [true,true,false,false],
+    [true,true,false,false],
+    [false,true,false,true],
+    [false,false,true,true]
+];
+
 var kv_diagram_size = {height:0,width:0,depth:0};
 
 function init() {
@@ -139,12 +149,18 @@ function create_truth_table(){
         // Create Header-Column
         var tr = table.insertRow();
         tr.classList.add("truth_table_tr");
-        for(var j = 0; j < signal_names.length; j++){
+        for(var j = input_signal_names.length; j > 0; j--){
             // Create Cell that contains an Input for the Signal-Name
             var td = tr.insertCell();
             add_classes(td,"truth_table_td truth_table_header");
-            // Seperate Inputs and Outputs in Table using Double Border
-            if(j == num_inputs){td.classList.add("double_border")}
+            td.appendChild(create_signal_input(j-1));
+        }
+        // Seperate Inputs and Outputs in Table using Double Border
+        td.classList.add("double_border");
+        for(var j = input_signal_names.length; j < signal_names.length; j++){
+            // Create Cell that contains an Input for the Signal-Name
+            var td = tr.insertCell();
+            add_classes(td,"truth_table_td truth_table_header");
             td.appendChild(create_signal_input(j));
         }
 
@@ -158,7 +174,7 @@ function create_truth_table(){
                 var td = tr.insertCell();
                 add_classes(td,"truth_table_td");
                 // Create Binary Numbers in Signal-Inputs
-                logic_val = ((((i&2**(j-1))==2**(j-1)))?"1":"0");
+                logic_val = ((((i&(2**(j-1)))==(2**(j-1))))?"1":"0");
                 // Append Logic-Input to Cell
                 td.appendChild(create_logic_input(logic_val,false,""));
             }
@@ -295,6 +311,7 @@ function update_equation() {
             heading.classList.add("kv_heading");
             heading.appendChild(text_node);
             kv_div.appendChild(heading);
+            kv_div.appendChild(document.createElement("br"));
 
             packets = create_kv_packets(values,true);
             output_packets[i] = packets;
@@ -317,7 +334,7 @@ function update_equation() {
             kv_div.appendChild(document.createElement("br"));
 
             // Create Code-Box with Latex-Karnaugh-Map
-            kv_div.appendChild(create_latex_karnaugh_diagram(values,packets,kv_diagram_size));
+            kv_div.appendChild(create_latex_karnaugh_diagram(values,packets));
 
             kv_container.appendChild(kv_div);
 
@@ -382,6 +399,8 @@ function create_kv_diagram(values,output_num) {
 
     if (values.length == (2 ** num_inputs)) {
 
+        var i, j, k;
+
         var middle_negated = [true,true,false,false];
         var right_negated = [true,false,false,true];
 
@@ -389,40 +408,65 @@ function create_kv_diagram(values,output_num) {
         table.classList.add("kv_diagram");
         table.id = output_signal_names[output_num] + "_kv_diagram";
 
-        // FIXME: Breaks if num_inputs != 4
+        // FIXME: Breaks if (num_inputs == 3) | (num_inputs > 4)
 
         // Create Top-Input-Row
         var tr = table.insertRow();
-        create_kv_inputs(tr,0,right_negated);
+        create_kv_inputs(tr,0,negated_kv_inputs[0]);
 
-        for (i = 0; i < num_inputs; i ++) {
+        for (i = 0; i < kv_diagram_size.depth; i++) {
 
-            // Create New Row in the Table
-            var tr = table.insertRow();
-            tr.classList.add("kv_diagram_tr");
+            for (j = 0; j < kv_diagram_size.height; j ++) {
 
-            // Create Input-Name plus optional Negation
-            create_kv_inputs_td(tr,input_signal_names[1],right_negated[i],"kv_diagram_td kv_diagram_name_td");
+                // Create New Row in the Table
+                var tr = table.insertRow();
+                tr.classList.add("kv_diagram_tr");
 
-            for (j = 0; j < num_inputs; j ++) {
-                var place = ((2**3) * right_negated[j]) + ((2**2) * right_negated[i]) + ((2**1) * middle_negated[j]) + ((2 **0) * middle_negated[i]);
-                create_kv_inputs_td(tr,values[place],true,"kv_diagram_td kv_diagram_logic_td",("kv_diagram_"+output_num+"_cell_"+place));
+                // Create Input-Name plus optional Negation
+                create_kv_inputs_td(tr,input_signal_names[1],negated_kv_inputs[1][j],"kv_diagram_td kv_diagram_name_td");
+
+                for (k = 0; k < kv_diagram_size.width; k ++) {
+                    var place = calculate_kv_cell_place(i,j,k);
+                    create_kv_inputs_td(tr,values[place],true,"kv_diagram_td kv_diagram_logic_td",("kv_diagram_"+output_num+"_cell_"+place));
+                }
+
+                if(kv_diagram_size.width == 4){
+                    // Create Input-Name plus optional Negation
+                    create_kv_inputs_td(tr,input_signal_names[3],negated_kv_inputs[3][j],"kv_diagram_td kv_diagram_name_td");
+                }
+
             }
-
-            // Create Input-Name plus optional Negation
-            create_kv_inputs_td(tr,input_signal_names[3],middle_negated[i],"kv_diagram_td kv_diagram_name_td");
 
         }
 
-        // Create Bottom-Input-Row
-        var tr = table.insertRow();
-        create_kv_inputs(tr,2,middle_negated);
+        if(kv_diagram_size.height == 4){
+            // Create Bottom-Input-Row
+            var tr = table.insertRow();
+            create_kv_inputs(tr,2,negated_kv_inputs[2]);
+        }
 
         return table;
 
     }else{
         console.log("Error creating KV-Diagram from given Values");
     }
+
+}
+
+function calculate_kv_cell_place(table_num, row, column) {
+
+    // TODO Implement Table-Number
+
+    var i;
+    var place = 0;
+
+    for (i = 0; i < num_inputs; i++) {
+        // TODO Doesn't quite work
+        place += negated_kv_inputs[i][(((i%2)==0)?column:row)] * (2 ** i);
+
+    }
+
+    return place;
 
 }
 
@@ -572,31 +616,34 @@ function highlight_packet(output_num, packet_num) {
     var i;
     var node, node_id;
 
-    if( (highlight_packets[output_num] != -1) &&
-        (highlight_packets[output_num] < output_packets[output_num].length)){
+    if((highlight_packets[output_num] < output_packets[output_num].length)) {
 
-        for(i = 0; i < output_packets[output_num][highlight_packets[output_num]].length; i++) {
+        if ((highlight_packets[output_num] != -1)){
 
-            node_id = "kv_diagram_"+output_num+"_cell_"+output_packets[output_num][highlight_packets[output_num]][i]
+            for(i = 0; i < output_packets[output_num][highlight_packets[output_num]].length; i++) {
+
+                node_id = "kv_diagram_"+output_num+"_cell_"+output_packets[output_num][highlight_packets[output_num]][i]
+                node = document.getElementById(node_id);
+
+                if(node){
+                    node.parentNode.classList.remove("kv_diagram_highlight");
+                }
+            }
+
+        }
+
+        for(i = 0; i < output_packets[output_num][packet_num].length; i++) {
+
+            node_id = "kv_diagram_"+output_num+"_cell_"+output_packets[output_num][packet_num][i]
             node = document.getElementById(node_id);
 
             if(node){
-                node.parentNode.classList.remove("kv_diagram_highlight");
+                node.parentNode.classList.add("kv_diagram_highlight");
             }
+
+            highlight_packets[output_num] = packet_num;
         }
 
-    }
-
-    for(i = 0; i < output_packets[output_num][packet_num].length; i++) {
-
-        node_id = "kv_diagram_"+output_num+"_cell_"+output_packets[output_num][packet_num][i]
-        node = document.getElementById(node_id);
-
-        if(node){
-            node.parentNode.classList.add("kv_diagram_highlight");
-        }
-
-        highlight_packets[output_num] = packet_num;
     }
 
 }
@@ -617,7 +664,7 @@ function create_kv_inputs(tr,input_num,negated) {
 
     create_kv_inputs_td(tr,"",true,"kv_diagram_td");
 
-    for(j = 0; j < 4; j++){
+    for(j = 0; j < kv_diagram_size.width; j++){
         create_kv_inputs_td(tr,input_signal_names[input_num],negated[j],"kv_diagram_td kv_diagram_name_td");
     }
 
@@ -1044,7 +1091,7 @@ function create_latex_truth_table() {
 
 }
 
-function create_latex_karnaugh_diagram(values, packets, kv_dia_params) {
+function create_latex_karnaugh_diagram(values, packets) {
 
     var latex_string =  "\\begin{karnaugh-map}[" + kv_diagram_size.height +
                         "][" + kv_diagram_size.width + "][" + kv_diagram_size.depth + "]\n\t" +

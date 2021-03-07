@@ -15,9 +15,13 @@ body{
     color: white;
 }
 
-.Header{
+.HeaderDiv{
     margin: 1em;
     font-size: 200%;
+}
+
+.Header{
+    font-size: 3em;
 }
 
 input[type=number]::-webkit-outer-spin-button,
@@ -26,7 +30,7 @@ input[type=number]::-webkit-inner-spin-button {
   margin: 0;
 }
 
-.Header input{
+.HeaderDiv input{
     font-size: 100%;
     width: auto;
     border: none;
@@ -57,7 +61,7 @@ input[type=number]::-webkit-inner-spin-button {
 }
 
 .double_border{
-    border-left: 0.5ex solid white;
+    border-left: 0.75ex solid white;
 }
 
 .kv_diagram{
