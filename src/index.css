@@ -73,7 +73,15 @@ input[type=number]::-webkit-inner-spin-button {
 }
 
 .flex_shrink{
-flex: 0 1 auto !important;
+    flex: 0 1 auto !important;
+}
+
+.editable_cell, .editable_cell > *{
+    cursor: pointer;
+}
+
+.non_editable_cell, .non_editable_cell > *{
+    cursor: default;
 }
 
 .kv_diagram_logic_td{
@@ -82,7 +90,8 @@ flex: 0 1 auto !important;
 }
 
 .kv_diagram_name_td{
-    padding: 0.5ex
+    padding: 0.5ex;
+    cursor: default;
 }
 
 .kv_diagram_highlight{

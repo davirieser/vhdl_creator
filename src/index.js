@@ -173,7 +173,7 @@ function create_truth_table(){
             for(j = input_signal_names.length; j > 0; j--){
                 // Create Cell that contains an Input for the Logic-Value
                 var td = tr.insertCell();
-                add_classes(td,"truth_table_td");
+                add_classes(td,"truth_table_td non_editable_cell");
                 // Create Binary Numbers in Signal-Inputs
                 logic_val = ((((i&(2**(j-1)))==(2**(j-1))))?"1":"0");
                 // Append Logic-Input to Cell
@@ -183,7 +183,7 @@ function create_truth_table(){
                 // Create Cell that contains an Input for the Logic-Value
                 var td = tr.insertCell();
                 // Seperate Inputs and Outputs in Table using Double Border
-                add_classes(td,(j == 0 ? "truth_table_td double_border" : "truth_table_td"));
+                add_classes(td,"truth_table_td editable_cell" + (j == 0 ? " double_border" : ""));
                 // Append Logic-Input to Cell
                 td.appendChild(create_logic_input(output_values[j][i],true,("Ouput_"+j+"_logic_cell"+i)));
             }
@@ -414,6 +414,9 @@ function update_kv_diagrams() {
             }
 
         }
+
+        rehighlight_packets();
+
     }
 
 }
@@ -849,6 +852,10 @@ function span_equation_from_packet(output_num, packet_num) {
         var container = document.createElement("span");
         add_classes(container, "selector_div span_packet_selector");
 
+        container.onclick = function() {
+            highlight_packet(output_num,packet_num);
+        };
+
         if(negated_inputs.length != 0) {
 
             container.appendChild(document.createTextNode("("));
@@ -857,17 +864,13 @@ function span_equation_from_packet(output_num, packet_num) {
                 container.appendChild(create_span_selector(negated_inputs,i));
             }
 
-            container.onclick = function() {
-                highlight_packet(output_num,packet_num);
-            };
-
             container.appendChild(document.createTextNode(")"));
 
-            return container;
-
+        }else{
+            container.appendChild(document.createTextNode("1"));
         }
 
-        return document.createTextNode("1");
+        return container;
 
     }
 
