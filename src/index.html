@@ -53,6 +53,22 @@
 
             <h1 class="Header">KV-Diagramme</h1>
 
+            <div class="selector_div">
+
+                <input type="radio" class="kv_display_selector" name="kv_display" id="kv_display_value" onclick="kv_display='Values';update_kv_diagrams()" checked>
+                <label for="kv_display_value">Display Values</label>
+
+            </div>
+
+            <br>
+
+            <div class="selector_div">
+
+                <input type="radio" class="kv_display_selector" name="kv_display" id="kv_display_position" onclick="kv_display='Positions';update_kv_diagrams()">
+                <label for="kv_display_position">Display Position</label>
+
+            </div>
+
             <div class="karnaugh_map_div divTable" id="karnaugh_map_container">
 
             </div>

@@ -11,7 +11,8 @@ var output_packets = [];
 
 var highlight_packets = [];
 
-// TODO Implement in KV-Diagram
+var kv_display = "Values";
+
 var negated_kv_inputs = [
     [true,false,false,true],
     [true,false,false,true],
@@ -78,8 +79,8 @@ function variable_change() {
     }
 
     kv_diagram_size = {
-        height: (num_inputs < 3 ? 2 : 4),
-        width:  (num_inputs < 4 ? 2 : 4),
+        height: (num_inputs < 4 ? 2 : 4),
+        width:  (num_inputs < 3 ? 2 : 4),
         depth:  (num_inputs < 5 ? 1 : (num_inputs < 6 ? 2 : 4)),
     };
 
@@ -156,10 +157,10 @@ function create_truth_table(){
             td.appendChild(create_signal_input(j-1));
         }
         // Seperate Inputs and Outputs in Table using Double Border
-        td.classList.add("double_border");
         for(var j = input_signal_names.length; j < signal_names.length; j++){
             // Create Cell that contains an Input for the Signal-Name
             var td = tr.insertCell();
+            if(j==input_signal_names.length){td.classList.add("double_border");}
             add_classes(td,"truth_table_td truth_table_header");
             td.appendChild(create_signal_input(j));
         }
@@ -324,10 +325,10 @@ function update_equation() {
                 kv_div.appendChild(kv_table);
             }
 
-            var packet_selectors = create_kv_packet_selectors(i);
-
-            kv_div.appendChild(document.createElement("br"));
-            kv_div.appendChild(packet_selectors);
+            // var packet_selectors = create_kv_packet_selectors(i);
+            //
+            // kv_div.appendChild(document.createElement("br"));
+            // kv_div.appendChild(packet_selectors);
 
             // Create Paragraph with Boolean Equation
             kv_div.appendChild(create_equations(i));
@@ -395,57 +396,80 @@ function get_truth_table_values(num_output) {
 --------------------------------------------------------------------------------
 ----------------------------------------------------------------------------- */
 
+function update_kv_diagrams() {
+
+    var i;
+    var kv_dia;
+
+    if((num_inputs >= 2) & (num_inputs <= 6)){
+
+        for (i = 0; i < num_outputs; i++) {
+
+            // Create KV-Diagram
+            kv_dia = create_kv_diagram(output_values[i],i);
+            // Check that KV-Diagram is valid
+            // Could be invalid if (2 < Number of Inputs < 6) => see "create_kv_diagram()"
+            if (kv_dia){
+                document.getElementById(output_signal_names[i] + "_kv_diagram").replaceWith(kv_dia.firstChild);
+            }
+
+        }
+    }
+
+}
+
 function create_kv_diagram(values,output_num) {
 
     if (values.length == (2 ** num_inputs)) {
 
         var i, j, k;
 
-        var middle_negated = [true,true,false,false];
-        var right_negated = [true,false,false,true];
-
-        var table = document.createElement("table");
-        table.classList.add("kv_diagram");
-        table.id = output_signal_names[output_num] + "_kv_diagram";
-
-        // FIXME: Breaks if (num_inputs == 3) | (num_inputs > 4)
-
-        // Create Top-Input-Row
-        var tr = table.insertRow();
-        create_kv_inputs(tr,0,negated_kv_inputs[0]);
+        var container = document.createElement("div");
+        add_classes(container, "divTable");
 
         for (i = 0; i < kv_diagram_size.depth; i++) {
 
-            for (j = 0; j < kv_diagram_size.height; j ++) {
+            var table = document.createElement("table");
+            add_classes(table,"kv_diagram divTableCell flex_shrink");
+            table.id = output_signal_names[output_num] + "_kv_diagram";
 
-                // Create New Row in the Table
-                var tr = table.insertRow();
-                tr.classList.add("kv_diagram_tr");
+            // Create Top-Input-Row
+            var tr = table.insertRow();
+            create_kv_inputs(tr,0,negated_kv_inputs[0]);
 
-                // Create Input-Name plus optional Negation
-                create_kv_inputs_td(tr,input_signal_names[1],negated_kv_inputs[1][j],"kv_diagram_td kv_diagram_name_td");
+                for (j = 0; j < kv_diagram_size.height; j ++) {
 
-                for (k = 0; k < kv_diagram_size.width; k ++) {
-                    var place = calculate_kv_cell_place(i,j,k);
-                    create_kv_inputs_td(tr,values[place],true,"kv_diagram_td kv_diagram_logic_td",("kv_diagram_"+output_num+"_cell_"+place));
-                }
+                    // Create New Row in the Table
+                    var tr = table.insertRow();
+                    tr.classList.add("kv_diagram_tr");
 
-                if(kv_diagram_size.width == 4){
                     // Create Input-Name plus optional Negation
-                    create_kv_inputs_td(tr,input_signal_names[3],negated_kv_inputs[3][j],"kv_diagram_td kv_diagram_name_td");
-                }
+                    create_kv_inputs_td(tr,input_signal_names[1],negated_kv_inputs[1][j],"kv_diagram_td kv_diagram_name_td");
+
+                    for (k = 0; k < kv_diagram_size.width; k ++) {
+                        var place = calculate_kv_cell_place(i,j,k);
+                        var value = ((kv_display == "Values") ? values[place] : place);
+                        create_kv_inputs_td(tr,value,true,"kv_diagram_td kv_diagram_logic_td",("kv_diagram_"+output_num+"_cell_"+place));
+                    }
+
+                    if(kv_diagram_size.height == 4){
+                        // Create Input-Name plus optional Negation
+                        create_kv_inputs_td(tr,input_signal_names[3],negated_kv_inputs[3][j],"kv_diagram_td kv_diagram_name_td");
+                    }
 
             }
 
+            if(kv_diagram_size.width == 4){
+                // Create Bottom-Input-Row
+                var tr = table.insertRow();
+                create_kv_inputs(tr,2,negated_kv_inputs[2]);
+            }
+
+            container.appendChild(table);
+
         }
 
-        if(kv_diagram_size.height == 4){
-            // Create Bottom-Input-Row
-            var tr = table.insertRow();
-            create_kv_inputs(tr,2,negated_kv_inputs[2]);
-        }
-
-        return table;
+        return container;
 
     }else{
         console.log("Error creating KV-Diagram from given Values");
@@ -455,15 +479,11 @@ function create_kv_diagram(values,output_num) {
 
 function calculate_kv_cell_place(table_num, row, column) {
 
-    // TODO Implement Table-Number
-
     var i;
     var place = 0;
 
     for (i = 0; i < num_inputs; i++) {
-        // TODO Doesn't quite work
-        place += negated_kv_inputs[i][(((i%2)==0)?column:row)] * (2 ** i);
-
+        place += negated_kv_inputs[i][((i>3)?table_num:((i%2)==0)?column:row)] * (2 ** i);
     }
 
     return place;
@@ -479,7 +499,6 @@ function create_kv_packets(values, compare_val) {
 
     for (i = 0; i < values.length; i++) {
         // Create Packet Array with single Packets
-        // TODO Implement Don't Care
         if(values[i] == compare_val) {
             packets.push([i]);
         }
@@ -828,7 +847,7 @@ function span_equation_from_packet(output_num, packet_num) {
         }
 
         var container = document.createElement("span");
-        add_classes(container, "span_packet_selector");
+        add_classes(container, "selector_div span_packet_selector");
 
         if(negated_inputs.length != 0) {
 
