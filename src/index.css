@@ -158,10 +158,13 @@ textarea:focus{
     font-family: Consolas,"courier new";
     color: white;
     padding: 2px;
-    /* font-size: 105%; */
     border: 0.1ex solid white;
     border-radius: 1ex;
     word-break: break-all;
+}
+
+.svg_container{
+    height: 50rem;
 }
 
 .divTable{
@@ -169,6 +172,7 @@ textarea:focus{
     flex-wrap: wrap;
     margin: 3em;
     gap: 2em;
+    justify-content: center;
 }
 
 .divTableCell {

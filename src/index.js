@@ -94,7 +94,7 @@ function variable_change() {
     // update_vhdl_code();
 
     // Create Svg using the created Packets
-    document.body.appendChild(create_svg());
+    // document.body.appendChild(create_svg());
 
 }
 
@@ -351,6 +351,9 @@ function update_equation() {
         // Highlight previously selected Packets
         rehighlight_packets();
 
+        // Create SVG
+        create_svg(output_packets[0]);
+
         // Remove old Latex Truth-Table
         if (document.getElementById("latex_truth_table")){
             document.getElementById("truth_table_div").removeChild(document.getElementById("latex_truth_table"));
@@ -497,6 +500,21 @@ function calculate_kv_cell_place(cell) {
     }
 
     return place;
+
+}
+
+function negated_from_place(place) {
+
+    var i;
+    var negated = [];
+
+    for (i = 0; i < num_inputs; i++) {
+
+        negated.push(((place >> i) & 1) == 1);
+
+    }
+
+    return negated;
 
 }
 
@@ -838,6 +856,46 @@ function span_equation_from_packets(output_num) {
     }
 
     return document.createTextNode("0");
+
+}
+
+
+function negated_from_packet(packet) {
+
+    if(!(packet.length == 0)) {
+
+        var i, j;
+        var negated_inputs = [];
+
+        // Create Array with Input-Names
+        for(i = 0; i < num_inputs; i++) {
+            negated_inputs.push({
+                input_name: i,
+                negated: !(((packet[0] >> i) & 1) == 1)
+            });
+        }
+
+        // Cycle through all Packets
+        for(i = 1; i < packet.length; i *= 2) {
+            // Cycle through all Bits
+            for (j = 0; j < num_inputs; j++) {
+                // Check which Bit is different
+                if ((packet[0] & (2 ** j)) != (packet[i] & (2 ** j))) {
+                    // Remove Input if Bits differ
+                    negated_inputs.splice(j,1);
+                }
+            }
+        }
+
+        if(negated_inputs.length != 0) {
+
+            return negated_inputs;
+
+        }
+
+        return "1";
+
+    }
 
 }
 
