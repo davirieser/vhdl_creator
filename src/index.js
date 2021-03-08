@@ -93,6 +93,9 @@ function variable_change() {
     // Create VHDL-Code
     // update_vhdl_code();
 
+    // Create Svg using the created Packets
+    document.body.appendChild(create_svg());
+
 }
 
 function change_signal_name(signal_num,signal_name) {
@@ -144,8 +147,12 @@ function create_truth_table(){
         table.classList.add("truth_table");
 
         var header = document.createElement("h1");
+        var header2 = document.createElement("h5");
+        header2.appendChild(document.createTextNode("To Change Output just click on the corresponding Table Cell"));
         header.appendChild(document.createTextNode("Truth Table"));
         container.appendChild(header);
+        container.appendChild(header2);
+        container.appendChild(document.createElement("br"));
 
         // Create Header-Column
         var tr = table.insertRow();
@@ -410,7 +417,7 @@ function update_kv_diagrams() {
             // Check that KV-Diagram is valid
             // Could be invalid if (2 < Number of Inputs < 6) => see "create_kv_diagram()"
             if (kv_dia){
-                document.getElementById(output_signal_names[i] + "_kv_diagram").replaceWith(kv_dia.firstChild);
+                document.getElementById(output_signal_names[i] + "_kv_diagram_0").parentNode.replaceWith(kv_dia);
             }
 
         }
@@ -434,31 +441,31 @@ function create_kv_diagram(values,output_num) {
 
             var table = document.createElement("table");
             add_classes(table,"kv_diagram divTableCell flex_shrink");
-            table.id = output_signal_names[output_num] + "_kv_diagram";
+            table.id = output_signal_names[output_num] + "_kv_diagram_" + i;
 
             // Create Top-Input-Row
             var tr = table.insertRow();
             create_kv_inputs(tr,0,negated_kv_inputs[0]);
 
-                for (j = 0; j < kv_diagram_size.height; j ++) {
+            for (j = 0; j < kv_diagram_size.height; j ++) {
 
-                    // Create New Row in the Table
-                    var tr = table.insertRow();
-                    tr.classList.add("kv_diagram_tr");
+                // Create New Row in the Table
+                var tr = table.insertRow();
+                tr.classList.add("kv_diagram_tr");
 
+                // Create Input-Name plus optional Negation
+                create_kv_inputs_td(tr,input_signal_names[1],negated_kv_inputs[1][j],"kv_diagram_td kv_diagram_name_td");
+
+                for (k = 0; k < kv_diagram_size.width; k ++) {
+                    var place = calculate_kv_cell_place({table_num: i,row: j, column: k});
+                    var value = ((kv_display == "Values") ? values[place] : place);
+                    create_kv_inputs_td(tr,value,true,"kv_diagram_td kv_diagram_logic_td",("kv_diagram_"+output_num+"_cell_"+place));
+                }
+
+                if(kv_diagram_size.height == 4){
                     // Create Input-Name plus optional Negation
-                    create_kv_inputs_td(tr,input_signal_names[1],negated_kv_inputs[1][j],"kv_diagram_td kv_diagram_name_td");
-
-                    for (k = 0; k < kv_diagram_size.width; k ++) {
-                        var place = calculate_kv_cell_place(i,j,k);
-                        var value = ((kv_display == "Values") ? values[place] : place);
-                        create_kv_inputs_td(tr,value,true,"kv_diagram_td kv_diagram_logic_td",("kv_diagram_"+output_num+"_cell_"+place));
-                    }
-
-                    if(kv_diagram_size.height == 4){
-                        // Create Input-Name plus optional Negation
-                        create_kv_inputs_td(tr,input_signal_names[3],negated_kv_inputs[3][j],"kv_diagram_td kv_diagram_name_td");
-                    }
+                    create_kv_inputs_td(tr,input_signal_names[3],negated_kv_inputs[3][j],"kv_diagram_td kv_diagram_name_td");
+                }
 
             }
 
@@ -480,16 +487,34 @@ function create_kv_diagram(values,output_num) {
 
 }
 
-function calculate_kv_cell_place(table_num, row, column) {
+function calculate_kv_cell_place(cell) {
 
     var i;
     var place = 0;
 
     for (i = 0; i < num_inputs; i++) {
-        place += negated_kv_inputs[i][((i>3)?table_num:((i%2)==0)?column:row)] * (2 ** i);
+        place += negated_kv_inputs[i][((i>3)?cell.table_num:((i%2)==0)?cell.column:cell.row)] * (2 ** i);
     }
 
     return place;
+
+}
+
+function calculate_kv_cell_from_place(place) {
+
+    var cell = {};
+
+    cell.table_num = Math.floor(place / 16);
+
+    // TODO
+
+    // cell.column = (place&0x1) * (2 ** 0) + (2 ** 2) * (place&0x2);
+    // cell.row    = (place&0x4) * (2 ** 1) + (2 ** 3) * (place&0x8);
+
+    // cell.column = (place & 0x1) * (2 ** 0) + (place & 0x4) * (2 **2);
+    // cell.row = (place & 0x2) * (2**1) + (place & 0x8) * (2 ** 3);
+
+    return cell;
 
 }
 
@@ -744,18 +769,16 @@ function equation_from_packet(packet) {
 
     if(!(packet.length == 0)) {
 
-        var i, j, len;
+        var i, j;
         var negated_inputs = [];
 
         // Create Array with Input-Names
         for(i = 0; i < num_inputs; i++) {
             negated_inputs.push({
                 input_name: input_signal_names[i],
-                negated: !(((packet[0] >> (num_inputs - i - 1)) & 1) == 1)
+                negated: !(((packet[0] >> i) & 1) == 1)
             });
         }
-
-        len = negated_inputs.length;
 
         // Cycle through all Packets
         for(i = 1; i < packet.length; i *= 2) {
@@ -764,7 +787,7 @@ function equation_from_packet(packet) {
                 // Check which Bit is different
                 if ((packet[0] & (2 ** j)) != (packet[i] & (2 ** j))) {
                     // Remove Input if Bits differ
-                    negated_inputs.splice(((len--) - j - 1),1);
+                    negated_inputs.splice(j,1);
                 }
             }
         }
@@ -824,18 +847,16 @@ function span_equation_from_packet(output_num, packet_num) {
 
     if(!(packet.length == 0)) {
 
-        var i, j, len;
+        var i, j;
         var negated_inputs = [];
 
         // Create Array with Input-Names
         for(i = 0; i < num_inputs; i++) {
             negated_inputs.push({
                 input_name: input_signal_names[i],
-                negated: !(((packet[0] >> (num_inputs - i - 1)) & 1) == 1)
+                negated: !(((packet[0] >> i) & 1) == 1)
             });
         }
-
-        len = negated_inputs.length;
 
         // Cycle through all Packets
         for(i = 1; i < packet.length; i *= 2) {
@@ -844,7 +865,7 @@ function span_equation_from_packet(output_num, packet_num) {
                 // Check which Bit is different
                 if ((packet[0] & (2 ** j)) != (packet[i] & (2 ** j))) {
                     // Remove Input if Bits differ
-                    negated_inputs.splice(((len--) - j - 1),1);
+                    negated_inputs.splice(j,1);
                 }
             }
         }
@@ -1088,6 +1109,7 @@ function create_latex_truth_table() {
 
         var header = document.createElement("h1");
         header.appendChild(document.createTextNode("Latex Truth Table"));
+        var header2 = document.createElement("h5");
         latex_container.appendChild(header);
 
         var text_area = document.createElement("textarea");
@@ -1133,17 +1155,49 @@ function create_latex_karnaugh_diagram(values, packets) {
 }
 
 function create_implicant_string(packets, string) {
-    var i;
+    var i, j, k;
     var string = "";
+
     for(i = 0; i < packets.length; i++) {
         // TODO Implement Implicantedge and ImplicantCorner
         if(packets[i].length == 1) {
             string += "\t\\implicant" + ("{" + packets[i][0] + "}").repeat(2)  + "\n";
         }else{
-            string += "\t\\implicant{" + packets[i].join("}{") + "}\n";
+            string += "\t\\implicant{" + oder_packet(packets[i]).join("}{") + "}\n";
         }
     }
     return string;
+}
+
+function oder_packet(packet) {
+
+    var i, j;
+    var cell1, cell2;
+    // Create new Packet which has the right Order
+    var packets_ordered = [];
+
+    cell_loop:
+    for (i = 0; i < packet.length; i++) {
+        cell1 = calculate_kv_cell_from_place(packets_ordered[i]);
+        console.log("Packet : " + packet[i] + " = " + JSON.stringify(cell1));
+        for(j = 0; j < packet.length; j ++) {
+            cell2 = calculate_kv_cell_from_place(packet[j]);
+            console.log("Checking against Packet " + packet[j] + " = " + JSON.stringify(cell2));
+            if( (cell1.row < cell2.row) &
+                (cell1.column > cell2.column) &
+                (cell1.table_num < cell2.table_num)) {
+                    console.log("Packet smaller");
+                    packets_ordered.push(packet[j]);
+                    // packets_ordered.slice(j,0,packet[j]);
+                    continue cell_loop;
+            }
+        }
+    }
+
+    console.log("Ordered Packet : ", packets_ordered);
+
+    return packets_ordered;
+
 }
 
 /* -----------------------------------------------------------------------------
