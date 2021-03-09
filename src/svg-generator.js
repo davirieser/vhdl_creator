@@ -12,21 +12,28 @@ var num_ellipses = 0;
 var num_texts = 0;
 var current_height = 0;
 var line_spacing = 10;
+var header_y_pos = 20;
 
 var gate_height_per_input = 25;
-var gate_width = 50;
+var gate_width = 60;
 
 var distance = 5;
+
+var negation_pos = "Gates";
 
 var and_operator = "&";
 var or_operator = "≥1";
 
-function create_svg(packets) {
+var gate_outputs = [];
 
-    var i;
+function create_svg() {
+
+    var i, j;
+    var curr_gate = 0;
     var svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
 
     current_height = 0;
+    gate_outputs = [];
 
     if(document.getElementById('svg_circuit')){
         document.getElementById("svg_container").removeChild(document.getElementById('svg_circuit'));
@@ -38,51 +45,50 @@ function create_svg(packets) {
 
     svg.appendChild(create_input_lines());
 
-    console.log("Redrawing SVG");
-
-    if(packets && (packets.length > 0)) {
-        for (i = 0; i < packets.length; i++) {
-            svg.appendChild(draw_packet(packets[i]));
+    for (i = 0; i < output_packets.length; i ++) {
+        if(output_packets[i] && (output_packets[i].length > 0)) {
+            for (j = 0; j < output_packets[i].length; j++) {
+                console.log("Drawing SVG for Packet " + JSON.stringify(output_packets[i][j]));
+                svg.appendChild(draw_packet(output_packets[i][j], true));
+                curr_gate++;
+            }
+            current_height += 3 * distance;
+            connect_packet_outputs()
         }
-        // TODO
-        // connect_packet_outputs()
     }
 
     svg.appendChild(extend_input_lines(current_height));
 
     svg.setAttribute('width', '100%');
-    svg.setAttribute('height', '100%');
+    svg.setAttribute('height', current_height + header_y_pos);
+
+    console.log("Gate Outputs : " + JSON.stringify(gate_outputs));
 
     document.getElementById("svg_container").appendChild(svg);
 
-    // return svg;
-
 }
 
-function draw_packet(packet) {
+function draw_packet(packet, connect_inputs) {
 
     var i;
     var negated = negated_from_packet(packet);
 
-    // // FIXME: Breaks if negated.length <= 1
+    // FIXME: Breaks if negated.length <= 1
 
     var edge_distance = (5 * distance) + (num_inputs * 10 * distance);
     var gate_container = document.createElementNS("http://www.w3.org/2000/svg", 'g');
-
-    console.log("Packet : " + packet + " : " + JSON.stringify(negated));
+    var gate_heigth = current_height;
 
     gate_container.appendChild(create_gate(edge_distance, current_height, and_operator, negated));
+    gate_container.appendChild(connect_gate_inputs(edge_distance, gate_heigth, negated));
 
-    current_height += negated.length * gate_height_per_input;
-
-    // TODO
-    // draw_gate_inputs();
+    current_height += ((negated.length * gate_height_per_input) / 2) + distance;
 
     return gate_container;
 
 }
 
-function create_gate(x_pos, y_pos, symbol, negated) {
+function create_gate(x_pos, y_pos, symbol, negated, negate_symbols) {
 
     var i;
 
@@ -91,9 +97,10 @@ function create_gate(x_pos, y_pos, symbol, negated) {
     var gate_outline = document.createElementNS("http://www.w3.org/2000/svg", 'path');
     var gate_connectors = document.createElementNS("http://www.w3.org/2000/svg", 'path');
 
-    gate_container.appendChild(create_text(symbol, (x_pos + (gate_width)/(32/19)), (y_pos + ((gate_height_per_input * (negated.length + (1/2)))/4))));
+    if(negated.length > 1) {
 
-    if(negated.length >= 1) {
+        // Create Operator-Text
+        gate_container.appendChild(create_text(symbol, (x_pos + (gate_width)/(32/19)), (y_pos + ((gate_height_per_input * (negated.length + (1/2)))/4))));
 
         var input_lines = '';
         for (i = 0; i < negated.length  ; i ++) {
@@ -101,25 +108,95 @@ function create_gate(x_pos, y_pos, symbol, negated) {
             input_lines += 'M ';
             input_lines += x_pos + ' ' + (y_pos + ((gate_height_per_input * (i + (1/2)))/2));
             input_lines += ' L ';
-            // if(!negated[i].negated){
-            input_lines += (x_pos + gate_input_length) + ' ' + (y_pos + ((gate_height_per_input * (i + (1/2)))/2)) + ' ';
-            // }else{
-            //     input_lines += (x_pos + distance) + ' ' + (y_pos + ((gate_height_per_input * (i + (1/2)))/2)) + ' ';
-            //     gate_container.appendChild(create_negation(x_pos + distance, (y_pos + ((gate_height_per_input * (i + (1/2)))/2))));
-            // }
-            gate_container.appendChild(connect_gate_input(x_pos, (y_pos + ((gate_height_per_input * (i + (1/2)))/2)), negated[i].input_name, negated[i].negated));
+            if((negation_pos == "Gates")) {
+                if(!negated[i].negated){
+                    input_lines += (x_pos + gate_input_length) + ' ' + (y_pos + ((gate_height_per_input * (i + (1/2)))/2)) + ' ';
+                }else{
+                    input_lines += (x_pos + gate_input_length - distance) + ' ' + (y_pos + ((gate_height_per_input * (i + (1/2)))/2)) + ' ';
+                    gate_container.appendChild(create_negation(x_pos + distance, (y_pos + ((gate_height_per_input * (i + (1/2)))/2))));
+                }
+            }else{
+                input_lines += (x_pos + gate_input_length) + ' ' + (y_pos + ((gate_height_per_input * (i + (1/2)))/2)) + ' ';
+            }
         }
+
+        // Create Output Connectors
+        input_lines +=
+            ' M ' + (x_pos + gate_width) + ' ' + (y_pos + ((gate_height_per_input * negated.length)/4))+
+            ' L ' + (x_pos + gate_width + gate_input_length) + ' ' + (y_pos + ((gate_height_per_input * negated.length)/4));
+
+        gate_outline.setAttribute('d',
+        // Upper Edge
+            'M '  + (x_pos + gate_input_length) + ' ' + y_pos +
+            ' L ' + (x_pos + gate_input_length + (gate_width/2)) + ' ' + y_pos +
+        // Curve to Output
+            ' C ' + (x_pos + gate_input_length + (gate_width/2)) + ' ' + y_pos + ' ' +
+                (x_pos + gate_input_length + ((3*gate_width)/4)) + ' ' + (y_pos) + ' ' +
+                (x_pos + gate_width) + ' ' + (y_pos + ((gate_height_per_input * negated.length)/4)) +
+        // Curve from Output to Bottom Edge
+            ' C ' + (x_pos + gate_width) + ' ' + (y_pos + ((gate_height_per_input * negated.length)/4)) + ' ' +
+                (x_pos + gate_input_length + ((3*gate_width)/4)) + ' ' + (y_pos + (gate_height_per_input * negated.length)/2) + ' ' +
+                (x_pos + gate_input_length + (gate_width/2)) + ' ' + (y_pos + ((gate_height_per_input * negated.length)/2)) +
+        // Bottom Edge
+            ' L ' + (x_pos + gate_input_length) + ' ' + (y_pos + ((gate_height_per_input * negated.length)/2)) +
+        // Left Edge
+            ' Z'
+        );
 
     }else{
 
-        // TODO
+        // Create Output Connectors
+        var input_lines = '';
+
+        if((negation_pos != "Gates")) {
+            if(!negated[0].negated){
+                input_lines += 'M ' + x_pos + ' ' + (y_pos + ((gate_height_per_input * negated.length)/4)) +
+                                ' L ' + (x_pos + gate_width + gate_input_length) + ' ' + (y_pos + ((gate_height_per_input * negated.length)/4));
+            }else{
+                input_lines += 'M ' + x_pos + ' ' + (y_pos + ((gate_height_per_input * negated.length)/4)) +
+                                ' L ' + (x_pos + gate_width + gate_input_length) + ' ' + (y_pos + ((gate_height_per_input * negated.length)/4));
+                // gate_container.appendChild(create_negation((x_pos + gate_width + gate_input_length - distance), (y_pos + ((gate_height_per_input * negated.length)/4))));
+            }
+        }else{
+
+            // Create Operator-Text
+            gate_container.appendChild(create_text("1", (x_pos + (gate_width)/(32/19)), (y_pos + ((gate_height_per_input * (negated.length + (1/2)))/4))));
+
+            input_lines += 'M ' + x_pos + ' ' + (y_pos + ((gate_height_per_input * negated.length)/4)) +
+                            ' L ' + (x_pos + gate_input_length) + ' ' + (y_pos + ((gate_height_per_input * negated.length)/4)) +
+                            'M ' + (x_pos + gate_width + distance) + ' ' + (y_pos + ((gate_height_per_input * negated.length)/4)) +
+                            ' L ' + (x_pos + gate_width + gate_input_length) + ' ' + (y_pos + ((gate_height_per_input * negated.length)/4));;
+
+            gate_container.appendChild(create_negation((x_pos + gate_width), (y_pos + ((gate_height_per_input * negated.length)/4))));
+
+            gate_outline.setAttribute('d',
+            // Start Positiion
+                'M '  + (x_pos + gate_input_length) + ' ' + y_pos +
+            // Upper Edge
+                ' L ' + (x_pos + gate_width) + ' ' + y_pos +
+            // Right Edge
+                ' L ' + (x_pos + gate_width) + ' ' + (y_pos + ((gate_height_per_input * negated.length)/2)) +
+            // Bottom Edge
+                ' L ' + (x_pos + gate_input_length) + ' ' + (y_pos + ((gate_height_per_input * negated.length)/2)) +
+            // Left Edge
+                ' Z'
+            );
+        }
 
     }
 
-    // Create Output Connectors
-    input_lines +=
-        ' M ' + (x_pos + gate_width) + ' ' + (y_pos + ((gate_height_per_input * negated.length)/4))+
-        ' L ' + (x_pos + gate_width + gate_input_length) + ' ' + (y_pos + ((gate_height_per_input * negated.length)/4));
+    gate_outputs.push(
+        {
+            x_pos: x_pos + gate_width + gate_input_length,
+            y_pos: y_pos + ((gate_height_per_input * negated.length)/4)
+        }
+    );
+
+    gate_outline.setAttribute('fill', 'none');
+    gate_outline.setAttribute('stroke', '#000000');
+    gate_outline.setAttribute('stroke-miterlimit', '10');
+    gate_outline.setAttribute('pointer-events', 'none');
+    gate_outline.setAttribute('id', 'path' + (num_paths++));
 
     gate_connectors.setAttribute('d', input_lines);
     gate_connectors.setAttribute('fill', 'none');
@@ -128,26 +205,21 @@ function create_gate(x_pos, y_pos, symbol, negated) {
     gate_connectors.setAttribute('pointer-events', 'none');
     gate_connectors.setAttribute('id', 'path' + (num_paths++));
 
-    gate_outline.setAttribute('d',
-        'M ' + (x_pos + gate_input_length) + ' ' + y_pos + ' L ' + (x_pos + gate_width) + ' ' + y_pos +
-        // ' C ' + (x_pos + (gate_width/4)) + ' ' + y_pos + ' ' +
-        //         (x_pos + ((5*gate_width)/3)) + ' ' + (y_pos + ((gate_height_per_input*num_inputs)/4)) + ' ' +
-        //         (x_pos + (gate_width/2)) + ' ' + (y_pos + ((gate_height_per_input*num_inputs)/2)) +
-        // ' C ' + (x_pos + (gate_width/2)) + ' ' + (y_pos + ((gate_height_per_input*num_inputs)/2)) + ' ' +
-        //         (x_pos + ((5*gate_width)/3)) + ' ' + (y_pos + ((3*gate_height_per_input*num_inputs)/4)) + ' ' +
-        //         (x_pos + (gate_width/4)) + ' ' + (y_pos + (gate_height_per_input*num_inputs)) +
-        ' L ' + (x_pos + gate_width) + ' ' + (y_pos + ((gate_height_per_input * negated.length)/2)) +
-        ' L ' + (x_pos + gate_input_length) + ' ' + (y_pos + ((gate_height_per_input * negated.length)/2)) +
-        ' Z'
-    );
-    gate_outline.setAttribute('fill', 'none');
-    gate_outline.setAttribute('stroke', '#000000');
-    gate_outline.setAttribute('stroke-miterlimit', '10');
-    gate_outline.setAttribute('pointer-events', 'none');
-    gate_outline.setAttribute('id', 'path' + (num_paths++));
-
     gate_container.appendChild(gate_connectors);
     gate_container.appendChild(gate_outline);
+
+    return gate_container;
+
+}
+
+function connect_gate_inputs(x_pos, y_pos, negated) {
+
+    var i;
+    var gate_container = document.createElementNS("http://www.w3.org/2000/svg", 'g');
+
+    for(i = 0; i < negated.length; i ++){
+        gate_container.appendChild(connect_gate_input(x_pos, (y_pos + ((gate_height_per_input * (i + (1/2)))/2)), negated[i].input_name, negated[i].negated));
+    }
 
     return gate_container;
 
@@ -159,7 +231,7 @@ function connect_gate_input(x_pos, y_pos, input, negated) {
 
     var gate_connection = document.createElementNS("http://www.w3.org/2000/svg", 'path');
 
-    var x_pos_input = ((5 * distance) + (input * 10 * distance) + (line_spacing * negated));
+    var x_pos_input = ((5 * distance) + (input * 10 * distance) + (line_spacing * ((negation_pos != "Gates") * negated)));
 
     gate_connection.setAttribute('d','M ' + x_pos_input + ' ' + y_pos + ' L ' + x_pos + ' ' + y_pos);
     gate_connection.setAttribute('fill', 'none');
@@ -263,7 +335,6 @@ function create_input_line_negation(x_pos, y_pos) {
     negation_connectors.setAttribute('fill', 'none');
     negation_connectors.setAttribute('stroke', '#000000');
     negation_connectors.setAttribute('stroke-miterlimit', '10');
-    // negation_connectors.setAttribute('transform', 'rotate(90,' + x_pos + ',' + (y_pos + 5) + ')');
     negation_connectors.setAttribute('pointer-events', 'none');
     negation_connectors.setAttribute('id', 'path' + (num_paths++));
 
@@ -274,7 +345,6 @@ function create_input_line_negation(x_pos, y_pos) {
     negation_box.setAttribute('fill', '#ffffff');
     negation_box.setAttribute('stroke', '#000000');
     negation_box.setAttribute('stroke-miterlimit', '10');
-    // negation_box.setAttribute('transform', 'rotate(90,' + x_pos + ',' + (y_pos + 5) + ')');
     negation_box.setAttribute('pointer-events', 'none');
     negation_box.setAttribute('id', 'path' + (num_paths++));
 
@@ -298,7 +368,6 @@ function create_text(text, x_pos, y_pos) {
     text_node.setAttribute('text-anchor', 'middle');
     text_node.setAttribute('font-size', '12px');
     text_node.setAttribute('font-family', 'Helvetica');
-    // text_node.setAttribute('transform', 'translate(2.5,1.5)');
     text_node.setAttribute('id', 'text' + (num_texts++));
 
     text_node.appendChild(document.createTextNode(text));

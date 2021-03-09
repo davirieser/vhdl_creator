@@ -5,90 +5,114 @@
 
         <meta charset="UTF-8">
         <title>Vhdl-Creator</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline';" />
         <script type="text/javascript" src="index.js"></script>
+        <script type="text/javascript" src="latex.js"></script>
+        <script type="text/javascript" src="vhdl.js"></script>
         <script type="text/javascript" src="svg-generator.js"></script>
         <link rel="stylesheet" type="text/css" href="index.css" />
+        <!-- Bootstrap => CSS only -->
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
 
     </head>
 
     <body>
 
-        <center>
+        <nav class="navbar fixed-top navbar-expand-lg navbar-dark bg-dark">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="#Top">Home</a>
+                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
 
-            <div class="HeaderDiv" id="Header">
 
-                <h1>
-                    Create VHDL-Scripts
-                </h1>
+                <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+                    <div class="navbar-nav">
+                        <!-- <a class="nav-link" href="#Top">Top</a> -->
+                        <a class="nav-link" href="#truth_table_div_link">Wahrheitstabelle</span></a>
+                        <a class="nav-link" href="#vhdl_container_link">VHDL-Skript</a>
+                        <a class="nav-link" href="#svg_container_link">SVG-Generator</a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <div class="content">
+
+            <center>
+
+                <a href="Top"></a>
+
+                <div class="HeaderDiv" id="Header">
+
+                    <h1>
+                        Create VHDL-Scripts
+                    </h1>
+
+                    <div class="input-group mb-3">
+                        <span class="input-group-text">&nbsp;Number of Inputs &nbsp;&nbsp;: </span>
+                        <input type="number" class="form-control" id="input_vars" min=1 max=7 onchange="variable_change()" aria-describedby="basic-addon3">
+                    </div>
+
+                    <div class="input-group mb-3">
+                        <span class="input-group-text">Number of Outputs : </span>
+                        <input type="number" class="form-control" id="output_vars" min=1 max=9 onchange="variable_change();" aria-describedby="basic-addon3">
+                    </div>
+
+                </div>
+
+                <a class="anchor" id="truth_table_div_link"></a>
+
+                <div class="truth_table_div divTable" id="truth_table_div">
+
+                </div>
+
+                <h1 class="Header" id="KV_Diagrams">KV-Diagramme</h1>
+
+                <div class="kv_display_selector_div">
+                    <input type="checkbox" class="kv_display_selector btn-check" name="kv_display" id="kv_display_value" onclick="toggle_kv_display();" checked>
+                    <label for="kv_display_value" class="btn btn-outline-success" id="KV_display_button">Display Position</label>
+                </div>
+
                 <br>
 
-                <div class="input_fields">
-
-                    <label for="input_vars">Number of Input-Variables : </label>
-                    <input type="number" name="input_vars" id="input_vars" min=1 max=7 onchange="variable_change()">
-
-                    <br>
-
-                    <label for="output_vars">Number of Output-Variables : </label>
-                    <input type="number" name="output_vars" id="output_vars" min=1 max=10 onchange="variable_change()">
+                <div class="karnaugh_map_div divTable" id="karnaugh_map_container">
 
                 </div>
 
-            </div>
+                <a class="anchor" id="vhdl_container_link"></a>
 
-            <div class="truth_table_div divTable" id="truth_table_div">
+                <div class="vhdl_script_div" id="vhdl_script_whole">
 
-            </div>
+                    <h1 class="Header">VHDL-Skript</h1>
 
-            <h1 class="Header">KV-Diagramme</h1>
+                    <div class="input-group mb-3">
+                        <span class="input-group-text">Entity Name : </span>
+                        <input type="text" class="form-control" value="main" name="entityName" id="entityName" onchange="update_vhdl_code();">
+                    </div>
 
-            <div class="selector_div">
+                    <div class="divTable">
 
-                <input type="radio" class="kv_display_selector" name="kv_display" id="kv_display_value" onclick="kv_display='Values';update_kv_diagrams()" checked>
-                <label for="kv_display_value">Display Values</label>
+                        <div class="divTableCell">
 
-            </div>
+                            <h3>Entity</h3>
+                            <br>
 
-            <br>
+                            <div class="vhdl_script_div" id="vhdl_script_entity">
 
-            <div class="selector_div">
-
-                <input type="radio" class="kv_display_selector" name="kv_display" id="kv_display_position" onclick="kv_display='Positions';update_kv_diagrams()">
-                <label for="kv_display_position">Display Position</label>
-
-            </div>
-
-            <div class="karnaugh_map_div divTable" id="karnaugh_map_container">
-
-            </div>
-
-            <div class="vhdl_script_div" id="vhdl_script_whole">
-
-                <h1 class="Header">VHDL-Skript</h1>
-
-                <label for="entityName">Entity-Name : </label>
-                <input type="text" value="main" name="entityName" id="entityName" onchange="create_vhdl_code()">
-
-                <div class="divTable">
-
-                    <div class="divTableCell">
-
-                        <h3>Entity</h3>
-                        <br>
-
-                        <div class="vhdl_script_div" id="vhdl_script_entity">
+                            </div>
 
                         </div>
 
-                    </div>
+                        <div class="divTableCell">
 
-                    <div class="divTableCell">
+                            <h3>Testbench</h3>
+                            <br>
 
-                        <h3>Testbench</h3>
-                        <br>
+                            <div class="vhdl_script_div" id="vhdl_script_testbench">
 
-                        <div class="vhdl_script_div" id="vhdl_script_testbench">
+                            </div>
 
                         </div>
 
@@ -96,15 +120,22 @@
 
                 </div>
 
-            </div>
+                <a class="anchor" id="svg_container_link"></a>
 
-            <h1>SVG-Creator</h1>
+                <h1>SVG-Creator</h1>
 
-            <div class="svg_container" id="svg_container">
+                <div class="kv_display_selector_div">
+                    <input type="checkbox" class="kv_display_selector btn-check" name="svg_display" id="svg_display_value" onclick="toggle_svg_display();" checked>
+                    <label for="svg_display_value" class="btn btn-outline-success" id="svg_display_button">Display Negation at Input_Lines</label>
+                </div>
 
-            </div>
+                <div class="svg_container" id="svg_container">
 
-        </center>
+                </div>
+
+            </center>
+
+        </div>
 
     </body>
 
