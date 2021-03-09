@@ -10,9 +10,11 @@ var num_gates = 0;
 var num_negations = 0;
 var num_ellipses = 0;
 var num_texts = 0;
-var current_height = 0;
 var line_spacing = 10;
 var header_y_pos = 20;
+
+var current_height = 0;
+var current_width = 0;
 
 var gate_height_per_input = 25;
 var gate_width = 60;
@@ -60,8 +62,9 @@ function create_svg() {
 
     svg.appendChild(extend_input_lines(current_height));
 
-    svg.setAttribute('width', '100%');
-    svg.setAttribute('height', current_height + header_y_pos);
+    // svg.setAttribute('width', current_width + 5 * distance);
+    // svg.setAttribute('height', current_height + header_y_pos);
+    svg.setAttribute('viewBox', '0 0 ' + (current_width + 5 * distance) + ' ' + (current_height + header_y_pos));
 
     document.getElementById("svg_container").appendChild(svg);
 
@@ -214,6 +217,10 @@ function create_gate(x_pos, y_pos, symbol, negated) {
     gate_container.appendChild(gate_connectors);
     gate_container.appendChild(gate_outline);
 
+    if(current_width < (x_pos + gate_width + gate_input_length)){
+        current_width = (x_pos + gate_width + gate_input_length);
+    }
+
     return gate_container;
 
 }
@@ -279,17 +286,16 @@ function create_input_lines() {
 function extend_input_lines(length) {
 
     var i;
-    var header_y_pos = 20;
-    var line_spacing = 10;
     var column_spacing;
+    var top_distance = (header_y_pos + (2 * line_spacing) + (distance * 4));
     var container = document.createElementNS("http://www.w3.org/2000/svg", 'g');
 
     for(i = 0; i < input_signal_names.length; i++) {
 
         column_spacing = (5 * distance) + (i * 10 * distance);
 
-        container.appendChild(create_input_line(column_spacing,(header_y_pos + (2 * line_spacing) + (distance * 4)),length));
-        container.appendChild(create_input_line((column_spacing + (2 * distance)),(header_y_pos + (2 * line_spacing) + (distance * 4)),length));
+        container.appendChild(create_input_line(column_spacing,top_distance,length - top_distance));
+        container.appendChild(create_input_line((column_spacing + (2 * distance)),top_distance,length - top_distance));
 
     }
 
@@ -313,6 +319,10 @@ function create_line(x_pos1, y_pos1, x_pos2, y_pos2) {
     input_line.setAttribute('stroke-miterlimit', '10');
     input_line.setAttribute('id', 'path' + (num_paths++));
     input_line.setAttribute('pointer-events', 'none');
+
+    if(current_width < x_pos2){
+        current_width = x_pos2;
+    }
 
     return input_line;
 
@@ -450,9 +460,8 @@ function connect_packet_outputs(gate_start_index, num_gates) {
 
     for(i = 0; i < num_gates; i ++) {
 
-        // TODO With multiple Gates the Connections overlap
-
-        break_distance = 2 * line_spacing * (Math.abs(Math.floor(num_gates/2) - i) / (num_gates/2));
+        // TODO Doesn't work if num_inputs is dividable by 2
+        break_distance = 2 * line_spacing * ((Math.abs(Math.floor(num_gates/2) - i) / (num_gates/2)));
 
         connection = document.createElementNS("http://www.w3.org/2000/svg", "path");
 
