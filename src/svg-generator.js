@@ -20,7 +20,7 @@ var current_width = 0;
 
 /* Dynamic Variables for SVG-Scaling ---------------------------------------- */
 var distance = 5;
-var edge_distance = 20;
+var edge_distance = 15;
 
 var input_line_seperation = 10 * distance;
 var input_negation_distance = 3 * distance;
@@ -47,9 +47,6 @@ var gate_outputs = [];
 /* Constants ---------------------------------------------------------------- */
 var and_operator = "&";
 var or_operator = "≥1";
-
-// TODO Implement Gate-Base Height
-// TODO Error when 4 Packets which only have one Input
 
 function create_svg() {
 
@@ -440,14 +437,12 @@ function connect_packet_outputs(gate_start_index, num_gates) {
             negated.push({input_name: "Moin",negated: false});
         }
 
-        // TODO Center Gate
+        // Center Gate
         if ((num_gates % 2) != 0) {
             median_heigth = gate_outputs[gate_start_index + ((num_gates - 1)/2)].y_pos - (((((num_gates-1)/2) + (1/2) - num_gates) * gate_height_per_input) + gate_base_heigth/2);
         }else{
             median_heigth /= num_gates;
         }
-
-        // median_heigth /= num_gates;
 
         for(i = 0; i < num_gates; i ++) {
 
