@@ -308,7 +308,7 @@ function update_equation() {
             output_values[i] = values;
 
             kv_div = document.createElement("div");
-            add_classes(kv_div, "divTableCell");
+            add_classes(kv_div, "divTableCell flex-grow-0");
 
             // Create Heading with Signal-Name
             heading = document.createElement("h2");
@@ -440,7 +440,7 @@ function create_kv_diagram(values,output_num) {
         for (i = 0; i < kv_diagram_size.depth; i++) {
 
             var table = document.createElement("table");
-            add_classes(table,"table table-hover table-sm");
+            add_classes(table,"divTableCell table table-hover table-sm");
             table.id = output_signal_names[output_num] + "_kv_diagram_" + i;
 
             // Create Top-Input-Row
@@ -890,7 +890,7 @@ function negated_from_packet(packet) {
 
         }
 
-        return "1";
+        return [];
 
     }
 
