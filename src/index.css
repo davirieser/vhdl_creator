@@ -107,3 +107,9 @@ textarea.form-control{
     color: red;
     cursor: pointer;
 }
+
+.svg_settings_container{
+    border: 1px solid #dddddd;
+    background-color: #dee2e6;
+    border-radius: 1em;
+}

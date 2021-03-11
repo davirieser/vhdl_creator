@@ -674,13 +674,15 @@ function create_connection(x_pos, y_pos, radius) {
 
 }
 
-function svg_distance_change() {
+function svg_variable_change() {
 
-    var x = document.getElementById("svg_distance_input").value;
+    ids = "gate_distance_vert", "gate_distance_hori", "input_line_distance", "negation_radius"
 
-    if(x > 2) {
-        distance = x;
-        create_svg();
-    }
+    vertical_gate_distance = parseInt(document.getElementById("gate_distance_vert").value,10) * distance;
+    horizontal_gate_distance = parseInt(document.getElementById("gate_distance_hori").value,10) * distance;
+    input_line_seperation = parseInt(document.getElementById("input_line_distance").value,10) * distance;
+    negation_radius = (parseInt(document.getElementById("negation_radius").value,10) * distance) / 10;
+
+    create_svg();
 
 }

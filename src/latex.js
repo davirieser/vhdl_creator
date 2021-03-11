@@ -125,12 +125,13 @@ function create_implicant_string(packets, string) {
         if(packets[i].length == 1) {
             string += "\t\\implicant" + ("{" + packets[i][0] + "}").repeat(2)  + "\n";
         }else{
-            string += "\t\\implicant{" + oder_packet(packets[i]).join("}{") + "}\n";
+            string += "\t\\implicant{" + packets[i].join("}{") + "}\n";
         }
     }
     return string;
 }
 
+// TODO Doesn't work => needed for Implicants
 function oder_packet(packet) {
 
     var i, j;
