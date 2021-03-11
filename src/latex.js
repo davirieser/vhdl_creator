@@ -62,7 +62,7 @@ function create_latex_truth_table() {
         latex_code += "\\end{tabular}";
 
         var latex_container = document.createElement("div");
-        add_classes(latex_container, "divTableCell");
+        latex_container.classList += "divTableCell";
         latex_container.id = "latex_truth_table";
 
         var header = document.createElement("h1");
