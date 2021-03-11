@@ -138,10 +138,10 @@ function create_truth_table(){
 
         // Create New Table
         var container = document.createElement("div");
-        container.classList += "divTableCell";
+        container.classList += " divTableCell";
         var table = document.createElement('table');
         table.id = "truth_table";
-        table.classList += "table table-striped table-hover table-sm truth_table";
+        table.classList += " table table-striped table-hover table-sm truth_table";
 
         var header = document.createElement("h1");
         var header2 = document.createElement("h5");
@@ -157,7 +157,7 @@ function create_truth_table(){
         for(var j = input_signal_names.length; j > 0; j--){
             // Create Cell that contains an Input for the Signal-Name
             var td = tr.insertCell();
-            td.classList += "truth_table_td truth_table_header";
+            td.classList += " truth_table_td truth_table_header";
             td.appendChild(create_signal_input(j-1));
         }
         // Seperate Inputs and Outputs in Table using Double Border
@@ -165,7 +165,7 @@ function create_truth_table(){
             // Create Cell that contains an Input for the Signal-Name
             var td = tr.insertCell();
             if(j==input_signal_names.length){td.classList.add("double_border");}
-            td.classList += "truth_table_td truth_table_header";
+            td.classList += " truth_table_td truth_table_header";
             td.appendChild(create_signal_input(j));
         }
 
@@ -177,7 +177,7 @@ function create_truth_table(){
             for(j = input_signal_names.length; j > 0; j--){
                 // Create Cell that contains an Input for the Logic-Value
                 var td = tr.insertCell();
-                td.classList += "truth_table_td non_editable_cell";
+                td.classList += " truth_table_td non_editable_cell";
                 // Create Binary Numbers in Signal-Inputs
                 logic_val = ((((i&(2**(j-1)))==(2**(j-1))))?"1":"0");
                 // Append Logic-Input to Cell
@@ -187,7 +187,10 @@ function create_truth_table(){
                 // Create Cell that contains an Input for the Logic-Value
                 var td = tr.insertCell();
                 // Seperate Inputs and Outputs in Table using Double Border
-                add_classes(td,"truth_table_td editable_cell" + (j == 0 ? " double_border" : ""));
+                td.classList += " truth_table_td editable_cell";
+                if(j == 0){
+                    td.classList += " double_border";
+                }
                 // Append Logic-Input to Cell
                 td.appendChild(create_logic_input(output_values[j][i],true,("Ouput_"+j+"_logic_cell"+i)));
             }
@@ -220,7 +223,7 @@ function create_signal_input(signal_num) {
     newInput.type = "text";
     newInput.name = "Signal_Name";
     newInput.value = signal_names[signal_num];
-    newInput.classList += "form-control truth_table_input text_align_center";
+    newInput.classList += " form-control truth_table_input text_align_center";
     // Create Callback-Function for OnChange
     newInput.onchange = (function (j_i) {
         return function () {
@@ -242,7 +245,7 @@ function create_logic_input(val,changable,cell_id) {
     // Configure Input-Element
     newInput.type = "text";
     newInput.value = val;
-    newInput.classList += "form-control truth_table_input text_align_center";
+    newInput.classList += " form-control truth_table_input text_align_center";
     if (changable) {
         // Make Input readonly so only Code can modify the Value
         // OnChange still works with "readonly" contrary to "diasabled"
@@ -308,7 +311,7 @@ function update_equation() {
             output_values[i] = values;
 
             kv_div = document.createElement("div");
-            add_classes(kv_div, "divTableCell flex-grow-0");
+            kv_div.classList += " divTableCell flex-grow-0";
 
             // Create Heading with Signal-Name
             heading = document.createElement("h2");
@@ -435,12 +438,12 @@ function create_kv_diagram(values,output_num) {
         var i, j, k;
 
         var container = document.createElement("div");
-        container.classList += "divTable";
+        container.classList += " divTable";
 
         for (i = 0; i < kv_diagram_size.depth; i++) {
 
             var table = document.createElement("table");
-            table.classList += "divTableCell table table-hover table-sm";
+            table.classList += " divTableCell table table-hover table-sm";
             table.id = output_signal_names[output_num] + "_kv_diagram_" + i;
 
             // Create Top-Input-Row
@@ -652,7 +655,7 @@ function create_kv_packet_selectors(output_num) {
                 selector.appendChild(document.createTextNode("Packet " + i));
 
                 selector.id = "kv_" + output_num + "_selector_" + i;
-                selector.classList += "kv_radio_selector";
+                selector.classList += " kv_radio_selector";
                 selector.onclick = (function (output_num,j_i) {
                     return function () {
                         highlight_packet(output_num,j_i);
@@ -738,7 +741,7 @@ function create_kv_inputs_td(tr,text,negated,classes,id) {
 
     var td = tr.insertCell();
 
-    add_classes(td,classes);
+    td.classList += ' ' + classes;
 
     var span = document.createElement("span");
     if (!negated) {
@@ -926,7 +929,7 @@ function span_equation_from_packet(output_num, packet_num) {
         }
 
         var container = document.createElement("span");
-        container.classList += "selector_div span_packet_selector";
+        container.classList += " selector_div span_packet_selector";
 
         container.onclick = function() {
             highlight_packet(output_num,packet_num);
@@ -960,7 +963,7 @@ function create_span_selector(negated) {
     var span = document.createElement("span")
     var text_node = document.createTextNode(negated.input_name);
     if(negated.negated){
-        span.classList += "negated_logic";
+        span.classList += " negated_logic";
     }
     span.appendChild(text_node);
     // container.appendChild(span);
@@ -1035,16 +1038,6 @@ function toggle_kv_display() {
     kv_display = ((kv_display == 'Values') ? 'Position' : 'Values');
 
     update_kv_diagrams();
-
-}
-
-function toggle_svg_display() {
-
-    document.getElementById("svg_display_button").innerText = "Display Negation at " + negation_pos;
-
-    negation_pos = ((negation_pos == 'Gates') ? 'Input_Lines' : 'Gates');
-
-    create_svg();
 
 }
 

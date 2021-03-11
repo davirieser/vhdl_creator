@@ -8,9 +8,9 @@ function create_navbar(title, title_href) {
 
     // Create Title Link
     var title_link = document.createElement("a");
+    title_link.appendChild(document.createTextNode(title));
     title_link.href = title_href;
     title_link.id = "navbar_title_link";
-    navbar.appendChild();
     title_link.classList += "navbar-brand";
 
     // Create Toggle Switch for Navbar Collapsing
@@ -18,7 +18,7 @@ function create_navbar(title, title_href) {
     navbar_toggler_span.classList += "navbar-toggler-icon";
 
     var navbar_toggler = document.createElement("button");
-    navbar_toggler.dataset["bsToggle"] = "collapse";
+    navbar_toggler.dataset["toggle"] = "collapse";
     navbar_toggler.type = "button";
     navbar_toggler.dataset["target"] = "#navbarSupportedContent";
     navbar_toggler.classList += "navbar-toggler";
@@ -66,17 +66,21 @@ function add_dropdown_to_navbar(dropdown_text, link_texts, link_hrefs) {
 
     var i;
 
+    var container = document.createElement("div");
+    container.classList += "nav-item dropdown mr-auto";
+    container.classList += " nav-item dropdown mr-auto";
+
     // Create Dropdown-Link
     var nav_link = document.createElement("a");
     nav_link.id = "navbarDropdownMenuLink";
     nav_link.href = "#";
-    nav_link.dataset["bsToggle"] = "dropdown";
+    nav_link.dataset["toggle"] = "dropdown";
     nav_link.appendChild(document.createTextNode(dropdown_text));
     nav_link.classList += "nav-link dropdown-toggle mr-auto";
 
     // Create Links inside the Dropdown
     var dropdown_links = document.createElement("ul");
-    dropdown_links.classList += "navbar-nav";
+    dropdown_links.classList += "dropdown-menu navbar-dark bg-dark";
 
     // Variable Declarations
     var dropdown_link;
@@ -86,21 +90,37 @@ function add_dropdown_to_navbar(dropdown_text, link_texts, link_hrefs) {
 
         // Create Container for Link so the Links will appear as a List
         dropdown_link_container = document.createElement("li");
-        dropdown_link_container.classList += "nav-item";
+        dropdown_link_container.classList += "dropdown-item navbar-dark bg-dark";
 
-        // Create actual Link
-        dropdown_link = document.createElement("a");
-        dropdown_link.appendChild(document.createTextNode(link_texts[i]));
-        dropdown_link.href = link_hrefs[i];
-        dropdown_link.classList += "nav-link active";
+        // Check if String is empty
+        if(link_texts[i]) {
+
+            // Create actual Link
+            dropdown_link = document.createElement("a");
+            dropdown_link.appendChild(document.createTextNode(link_texts[i]));
+            dropdown_link.href = link_hrefs[i];
+            dropdown_link.classList += "nav-link active dropdown-item navbar-dark bg-dark";
+
+        }else{
+
+            // Create Dropdown-Divider
+            dropdown_link = document.createElement("hr");
+            dropdown_link.classList += "dropdown-divider";
+
+        }
+
+        dropdown_link_container.appendChild(dropdown_link);
 
         // Add the Container to the Dropdown
         dropdown_links.appendChild(dropdown_link_container);
 
     }
 
+    container.appendChild(nav_link);
+    container.appendChild(dropdown_links);
+
     document.getElementById("navbarSupportedContent").appendChild(container);
 
 }
 
-create_navbar("VHDL-Creator", "#Top");
+create_navbar("5BHEL", "/");

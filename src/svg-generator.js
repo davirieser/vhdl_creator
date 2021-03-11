@@ -48,6 +48,8 @@ var gate_outputs = [];
 var and_operator = "&";
 var or_operator = "≥1";
 
+var svg_darkmode = false;
+
 function create_svg() {
 
     var i, j;
@@ -69,8 +71,13 @@ function create_svg() {
     }
 
     svg.setAttribute('id', 'svg_circuit');
-    svg.setAttribute('style', 'background-color: rgb(255, 255, 255);');
-    svg.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:xlink", "http://www.w3.org/1999/xlink");
+    svg.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+    svg.setAttribute("xmlns:xlink", "http://www.w3.org/1999/xlink");
+    if(svg_darkmode) {
+        svg.setAttribute('style', 'background-color: rgb(55, 55, 55);border: 0.3ex solid #e6e6e6; border-radius:0.5em;');
+    }else{
+        svg.setAttribute('style', 'background-color: rgb(250, 250, 250);border: 0.3ex solid #161616; border-radius:0.5em;');
+    }
 
     svg.appendChild(create_input_lines());
 
@@ -213,11 +220,7 @@ function create_operator_gate(x_pos, y_pos, symbol, inputs) {
         'L ' + (bottom_right.x_pos + gate_input_length) + ' ' + middle_middle.y_pos;
 
     gate_connectors.setAttribute('d', gate_connectors_path);
-    gate_connectors.setAttribute('fill', 'none');
-    gate_connectors.setAttribute('stroke', '#000000');
-    gate_connectors.setAttribute('stroke-miterlimit', '10');
-    gate_connectors.setAttribute('pointer-events', 'none');
-    gate_connectors.setAttribute('id', 'path' + (num_paths++));
+    set_path_properties(gate_connectors);
 
     gate_outline.setAttribute('d',
     // Upper Edge
@@ -236,11 +239,7 @@ function create_operator_gate(x_pos, y_pos, symbol, inputs) {
     // Left Edge
         'Z'
     );
-    gate_outline.setAttribute('fill', 'none');
-    gate_outline.setAttribute('stroke', '#000000');
-    gate_outline.setAttribute('stroke-miterlimit', '10');
-    gate_outline.setAttribute('pointer-events', 'none');
-    gate_outline.setAttribute('id', 'path' + (num_paths++));
+    set_path_properties(gate_outline);
 
     gate_container.appendChild(gate_connectors);
     gate_container.appendChild(gate_outline);
@@ -312,11 +311,7 @@ function create_negation_gate(x_pos, y_pos, symbol, negated) {
         gate_container.appendChild(create_line(top_left.x_pos, middle_middle.y_pos, bottom_right.x_pos + gate_input_length, middle_middle.y_pos));
     }
 
-    gate_outline.setAttribute('fill', 'none');
-    gate_outline.setAttribute('stroke', '#000000');
-    gate_outline.setAttribute('stroke-miterlimit', '10');
-    gate_outline.setAttribute('pointer-events', 'none');
-    gate_outline.setAttribute('id', 'path' + (num_paths++));
+    set_path_properties(gate_outline);
 
     // gate_container.appendChild(gate_connectors);
     gate_container.appendChild(gate_outline);
@@ -375,6 +370,7 @@ function create_constant(x_pos, y_pos, constant_val) {
     // Left Edge
         ' Z'
     );
+    set_path_properties(constant_outline);
 
     gate_outputs.push(
         {
@@ -383,18 +379,8 @@ function create_constant(x_pos, y_pos, constant_val) {
         }
     );
 
-    constant_outline.setAttribute('fill', 'none');
-    constant_outline.setAttribute('stroke', '#000000');
-    constant_outline.setAttribute('stroke-miterlimit', '10');
-    constant_outline.setAttribute('pointer-events', 'none');
-    constant_outline.setAttribute('id', 'path' + (num_paths++));
-
     constant_connectors.setAttribute('d', input_lines);
-    constant_connectors.setAttribute('fill', 'none');
-    constant_connectors.setAttribute('stroke', '#000000');
-    constant_connectors.setAttribute('stroke-miterlimit', '10');
-    constant_connectors.setAttribute('pointer-events', 'none');
-    constant_connectors.setAttribute('id', 'path' + (num_paths++));
+    set_path_properties(constant_connectors);
 
     constant_container.appendChild(constant_connectors);
     constant_container.appendChild(constant_outline);
@@ -459,11 +445,7 @@ function connect_packet_outputs(gate_start_index, num_gates) {
                 'L ' + (gate_outputs[gate_start_index + i].x_pos + break_distance) + ' ' + (median_heigth + ((i + (1/2) - num_gates) * gate_height_per_input) + gate_base_heigth/2) + ' ' +
                 'L ' + (gate_outputs[gate_start_index + i].x_pos + vertical_gate_distance) + ' ' + (median_heigth + (i + (1/2) - num_gates) * gate_height_per_input + gate_base_heigth/2)
             );
-            connection.setAttribute('fill', 'none');
-            connection.setAttribute('stroke', '#000000');
-            connection.setAttribute('stroke-miterlimit', '10');
-            connection.setAttribute('id', 'path' + (num_paths++));
-            connection.setAttribute('pointer-events', 'none');
+            set_path_properties(connection);
 
             container.appendChild(connection);
 
@@ -500,11 +482,7 @@ function connect_gate_input(x_pos, y_pos, input, negated) {
     var x_pos_input = edge_distance + (input_line_seperation * input) + (horizontal_input_distance * ((negation_pos != "Gates") * negated));
 
     gate_connection.setAttribute('d','M ' + x_pos_input + ' ' + y_pos + ' L ' + x_pos + ' ' + y_pos);
-    gate_connection.setAttribute('fill', 'none');
-    gate_connection.setAttribute('stroke', '#000000');
-    gate_connection.setAttribute('stroke-miterlimit', '10');
-    gate_connection.setAttribute('id', 'path' + (num_paths++));
-    gate_connection.setAttribute('pointer-events', 'none');
+    set_path_properties(gate_connection);
 
     gate_container.appendChild(gate_connection);
     gate_container.appendChild(create_connection(x_pos_input, y_pos, negation_radius));
@@ -563,11 +541,7 @@ function create_line(x_pos1, y_pos1, x_pos2, y_pos2) {
     var input_line = document.createElementNS("http://www.w3.org/2000/svg", 'path');
 
     input_line.setAttribute('d','M ' + x_pos1 + ' ' + y_pos1 + ' L ' + x_pos2 + ' ' + y_pos2);
-    input_line.setAttribute('fill', 'none');
-    input_line.setAttribute('stroke', '#000000');
-    input_line.setAttribute('stroke-miterlimit', '10');
-    input_line.setAttribute('id', 'path' + (num_paths++));
-    input_line.setAttribute('pointer-events', 'none');
+    set_path_properties(input_line);
 
     if(current_width < x_pos2){
         current_width = x_pos2;
@@ -597,10 +571,7 @@ function create_input_line_negation(x_pos, y_pos) {
         'L '  + negation_x_pos + ' ' + (negation_y_pos + input_line_negation_size + horizontal_input_distance/2)
     );
     negation_connectors.setAttribute('fill', 'none');
-    negation_connectors.setAttribute('stroke', '#000000');
-    negation_connectors.setAttribute('stroke-miterlimit', '10');
-    negation_connectors.setAttribute('pointer-events', 'none');
-    negation_connectors.setAttribute('id', 'path' + (num_paths++));
+    set_path_properties(negation_connectors);
 
     negation_box.setAttribute('d',
         'M ' + negation_x_pos + ' ' + (negation_y_pos + input_line_negation_size) + ' ' +
@@ -608,11 +579,7 @@ function create_input_line_negation(x_pos, y_pos) {
         'L ' + (negation_x_pos + (input_line_negation_size/2)) + ' ' + negation_y_pos + ' ' +
         'Z'
     );
-    negation_box.setAttribute('fill', '#ffffff');
-    negation_box.setAttribute('stroke', '#000000');
-    negation_box.setAttribute('stroke-miterlimit', '10');
-    negation_box.setAttribute('pointer-events', 'none');
-    negation_box.setAttribute('id', 'path' + (num_paths++));
+    set_path_properties(negation_box);
 
     negation_container.appendChild(negation_connectors);
     negation_container.appendChild(negation_box);
@@ -627,12 +594,7 @@ function create_text(text, x_pos, y_pos) {
 
     text_node.setAttribute("x",x_pos);
 	text_node.setAttribute("y",y_pos);
-    text_node.setAttribute('fill', '#000000');
-    text_node.setAttribute('text-anchor', 'middle');
-    text_node.setAttribute("dominant-baseline", "central");
-    text_node.setAttribute('font-size', '12px');
-    text_node.setAttribute('font-family', 'Helvetica');
-    text_node.setAttribute('id', 'svg_text_node_' + (num_texts++));
+    set_text_properties(text_node);
 
     text_node.appendChild(document.createTextNode(text));
 
@@ -646,12 +608,8 @@ function create_negation(x_pos, y_pos) {
 
 	negation.setAttribute("cx",x_pos + negation_radius/2);
     negation.setAttribute("cy",y_pos);
-    negation.setAttribute("rx",negation_radius/2);
-    negation.setAttribute("ry",negation_radius/2);
-    negation.setAttribute('fill', '#ffffff');
-    negation.setAttribute('stroke', '#000000');
-    negation.setAttribute('pointer-events', 'none');
-    negation.setAttribute('id', 'ellipse' + (num_ellipses++));
+    set_ellipse_properies(negation, negation_radius);
+    negation.setAttribute("fill", "none");
 
     return negation;
 
@@ -663,25 +621,90 @@ function create_connection(x_pos, y_pos, radius) {
 
 	connection.setAttribute("cx",x_pos);
     connection.setAttribute("cy",y_pos);
-    connection.setAttribute("rx",radius/2);
-    connection.setAttribute("ry",radius/2);
-    connection.setAttribute('fill', '#000000');
-    connection.setAttribute('stroke', '#000000');
-    connection.setAttribute('id', 'ellipse' + (num_ellipses++));
-    connection.setAttribute('pointer-events', 'none');
+
+    set_ellipse_properies(connection, radius);
 
     return connection;
 
 }
 
+function set_path_properties(path) {
+
+    path.setAttribute('fill', 'none');
+    if(svg_darkmode) {
+        path.setAttribute('stroke', '#ffffff');
+    }else{
+        path.setAttribute('stroke', '#000000');
+    }
+    path.setAttribute('stroke-miterlimit', '10');
+    path.setAttribute('id', 'path' + (num_paths++));
+    path.setAttribute('pointer-events', 'none');
+
+}
+
+function set_text_properties(text) {
+
+    if(svg_darkmode) {
+        text.setAttribute('fill', '#ffffff');
+    }else{
+        text.setAttribute('fill', '#000000');
+    }
+    text.setAttribute('text-anchor', 'middle');
+    text.setAttribute("dominant-baseline", "central");
+    text.setAttribute('font-size', '12px');
+    text.setAttribute('font-family', 'Helvetica');
+    text.setAttribute('id', 'svg_text_node_' + (num_texts++));
+
+}
+
+function set_ellipse_properies(ellipse, radius) {
+
+    ellipse.setAttribute("rx",radius/2);
+    ellipse.setAttribute("ry",radius/2);
+    if(svg_darkmode){
+        ellipse.setAttribute('fill', '#ffffff');
+        ellipse.setAttribute('stroke', '#ffffff');
+    }else{
+        ellipse.setAttribute('fill', '#000000');
+        ellipse.setAttribute('stroke', '#000000');
+    }
+    ellipse.setAttribute('id', 'ellipse' + (num_ellipses++));
+    ellipse.setAttribute('pointer-events', 'none');
+
+}
+
 function svg_variable_change() {
 
-    ids = "gate_distance_vert", "gate_distance_hori", "input_line_distance", "negation_radius"
+    // ids = "gate_distance_vert", "gate_distance_hori", "input_line_distance", "negation_radius"
 
     vertical_gate_distance = parseInt(document.getElementById("gate_distance_vert").value,10) * distance;
     horizontal_gate_distance = parseInt(document.getElementById("gate_distance_hori").value,10) * distance;
     input_line_seperation = parseInt(document.getElementById("input_line_distance").value,10) * distance;
     negation_radius = (parseInt(document.getElementById("negation_radius").value,10) * distance) / 10;
+
+    create_svg();
+
+}
+
+function toggle_svg_darkmode() {
+
+    if(svg_darkmode) {
+        document.getElementById("svg_darkmode_label").innerText = "SVG Lightmode";
+    }else{
+        document.getElementById("svg_darkmode_label").innerText = "SVG Darkmode";
+    }
+
+    svg_darkmode = !svg_darkmode;
+
+    create_svg();
+
+}
+
+function toggle_svg_display() {
+
+    document.getElementById("svg_display_label").innerText = "Display Negation at " + negation_pos;
+
+    negation_pos = ((negation_pos == 'Gates') ? 'Input_Lines' : 'Gates');
 
     create_svg();
 

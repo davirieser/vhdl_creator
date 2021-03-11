@@ -1,4 +1,15 @@
 
+nav {
+    padding-left: 1em;
+    text-align: center;
+    height: auto;
+    background: #525252;
+}
+
+.nav-link, .nav-link > * {
+    color: white;
+}
+
 .svg_container{
     width: 80%;
 }
