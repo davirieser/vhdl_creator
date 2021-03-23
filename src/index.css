@@ -6,8 +6,23 @@ nav {
     background: #525252;
 }
 
+.navbar-brand {
+    padding: .3125rem;
+    color: #b2bec3 !important;
+    border-radius: 1ex;
+    background-color: #2d3436;
+}
+
+.navbar-brand:hover {
+    color: #636e72 !important;
+}
+
 .nav-link, .nav-link > * {
     color: white;
+}
+
+.nav-link:hover, .nav-link > *:hover, .dropdown-item.active:hover {
+    color: #b2bec3;
 }
 
 .svg_container{
@@ -89,6 +104,7 @@ input[type=number]::-webkit-inner-spin-button {
 textarea.form-control{
     resize: none;
     width: auto;
+    /* overflow: hidden; */
     text-overflow: ellipsis;
     font: 0 13.333px Arial;
 }
@@ -112,6 +128,10 @@ textarea.form-control{
 .input-group .form-control {
     flex: 0 1 auto !important;
     width: auto !important;
+}
+
+.span_packet_selector{
+    cursor: pointer;
 }
 
 .span_packet_selector span{
