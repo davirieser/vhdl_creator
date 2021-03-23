@@ -22,9 +22,44 @@
         <script type="text/javascript" src="navbar.js"></script>
 
         <script type="text/javascript">
-            add_link_to_navbar("Wahrheitstabelle", "#truth_table_div_link");
-            add_link_to_navbar("VHDL-Skript", "#vhdl_container_link");
-            add_link_to_navbar("SVG-Generator", "#svg_container_link");
+        // Add Links
+            // add_link_to_navbar("Wahrheitstabelle", "#truth_table_div_link");
+            // add_link_to_navbar("VHDL-Skript", "#vhdl_container_link");
+            // add_link_to_navbar("SVG-Generator", "#svg_container_link");
+            add_link_from_object_to_navbar({
+                text:"Wahrheitstabelle",
+                href:"#truth_table_div_link"
+            });
+            add_link_from_object_to_navbar({
+                text:"KV-Diagramme",
+                href:"#kv_diagram_link"
+            });
+            add_link_from_object_to_navbar({
+                text:"VHDL-Skript",
+                href:"#vhdl_container_link"
+            });
+            add_link_from_object_to_navbar({
+                text:"SVG-Generator",
+                href:"#svg_container_link"
+            });
+        // Add Dropdown
+            // add_dropdown_to_navbar("Links",
+            //     ["Wahrheitstabelle","VHDL-Skript","SVG-Generator"],
+            //     ["#truth_table_div_link","#vhdl_container_link","#svg_container_link"]);
+            add_dropdown_from_object_to_navbar("Links",
+            [{
+                text: "Wahrheitstabelle",
+                href: "#truth_table_div_link"
+            },{
+                text: "KV-Diagramme",
+                href: "#kv_diagram_link"
+            },{
+                text: "VHDL-Skript",
+                href: "#vhdl_container_link"
+            },{
+                text: "SVG-Generator",
+                href: "#svg_container_link"
+            }]);
         </script>
 
         <div class="content">
@@ -56,6 +91,8 @@
                 <div class="truth_table_div divTable" id="truth_table_div">
 
                 </div>
+
+                <a class="anchor" id="kv_diagram_link"></a>
 
                 <h1 class="Header" id="KV_Diagrams">KV-Diagramme</h1>
 
@@ -169,8 +206,10 @@
 <!--
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.6/umd/popper.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.bundle.min.js" integrity="sha384-b5kHyXgcpbZJO/tY9Ul7kGkf1S0CWuKcCD38l8YkeH8z8QjE0GmW1gYU5S9FOnJ0" crossorigin="anonymous"></script> -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.bundle.min.js" integrity="sha384-b5kHyXgcpbZJO/tY9Ul7kGkf1S0CWuKcCD38l8YkeH8z8QjE0GmW1gYU5S9FOnJ0" crossorigin="anonymous"></script>
+-->
 
+        <script type="text/javascript" src="bootstrap.min.js"></script>
 
     </body>
 
